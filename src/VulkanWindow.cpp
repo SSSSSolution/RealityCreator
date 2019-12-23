@@ -1,6 +1,6 @@
 #include "VulkanWindow.h"
 #include <QVulkanFunctions>
-
+#include <QApplication>
 VulkanWindow::VulkanWindow(QWindow *parent)
     : QVulkanWindow(parent)
 {
@@ -27,6 +27,18 @@ VulkanWindow::VulkanWindow(QWindow *parent)
 QVulkanWindowRenderer *VulkanWindow::createRenderer()
 {
     return new VulkanRenderer(this);
+}
+
+void VulkanWindow::keyPressEvent(QKeyEvent *ev)
+{
+    if (ev->key() == Qt::Key_Escape) {
+        qApp->quit();
+    }
+}
+
+void VulkanWindow::keyReleaseEvent(QKeyEvent *ev)
+{
+    qDebug() << __func__ << ev->key();
 }
 
 VulkanRenderer::VulkanRenderer(QVulkanWindow *w)
@@ -59,8 +71,8 @@ void VulkanRenderer::releaseResources()
 
 void VulkanRenderer::startNextFrame()
 {
-    static uint f = 0;
-    qDebug() << "frame " << f++;
+//    static uint f = 0;
+//    qDebug() << "frame " << f++;
 
     green += 0.005f;
     if (green > 1.0f)

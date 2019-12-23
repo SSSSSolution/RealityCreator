@@ -2,6 +2,7 @@
 #define VULKANWIDGET_H
 
 #include <QVulkanWindow>
+#include <QKeyEvent>
 
 class VulkanWindow : public QVulkanWindow
 {
@@ -10,6 +11,10 @@ public:
     ~VulkanWindow() {}
 
     QVulkanWindowRenderer *createRenderer() override;
+
+protected:
+    void keyPressEvent(QKeyEvent *ev) override;
+    void keyReleaseEvent(QKeyEvent *ev) override;
 };
 
 class VulkanRenderer : public QVulkanWindowRenderer
