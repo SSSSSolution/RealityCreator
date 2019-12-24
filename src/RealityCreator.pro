@@ -20,6 +20,8 @@ LIBS += -L/home/huangwei/study/Mirage/3thparty/1.1.121.1/x86_64/lib -lvulkan
 # windows 环境:
 win32 {
 #如何配置安装vulkan请参考　https://vulkan.lunarg.com/doc/sdk/latest/windows/getting_started.html
+INCLUDEPATH += C:\VulkanSDK\1.1.130.0\Include
+LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
 }
 
 SOURCES += \
