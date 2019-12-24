@@ -30,9 +30,16 @@ public:
     void startNextFrame() override;
 
 private:
+    void printPhysicalDeviceQueueFamilyProperties();
+    void printPhysicalDeviceMemoryInformation();
+    void printPhysicalDeviceProperties();
+
+private:
     QVulkanWindow *vulkanWindow;
     QVulkanDeviceFunctions *devFuncs;
+    QVulkanFunctions *vulkanFuncs;
     float green = 0;
+    bool clear = true;
 };
 
 #endif // VULKANWIDGET_H

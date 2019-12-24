@@ -30,3 +30,8 @@ SOURCES += \
 HEADERS += \
     MainWindow.h \
     VulkanWindow.h
+
+RESOURCES += \
+    shaders.qrc
+
+DISTFILES +=
