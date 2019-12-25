@@ -38,8 +38,12 @@ private:
     QVulkanWindow *vulkanWindow;
     QVulkanDeviceFunctions *devFuncs;
     QVulkanFunctions *vulkanFuncs;
+
     float green = 0;
     bool clear = true;
+
+    VkPipelineCache pipelineCache;
+    VkPipeline pipeline;
 };
 
 #endif // VULKANWIDGET_H

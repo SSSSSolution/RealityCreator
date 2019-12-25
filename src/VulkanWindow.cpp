@@ -2,30 +2,39 @@
 #include <QVulkanFunctions>
 #include <QApplication>
 #include <QFile>
-#include <QtGlobal>
-
+#include "VulkanLayersAndExtensions.h"
+#include <QVulkanLayer>
+#include "VulkanPhysicalDevice.h"
 VulkanWindow::VulkanWindow(QWindow *parent)
     : QVulkanWindow(parent)
 {
-    // 创建vulkan实例
     QVulkanInstance *inst = new QVulkanInstance;
-
 #ifndef Q_OS_ANDROID
-    inst->setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
+        inst->setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
 #else
-    inst.setLayers(QByteArrayList()
-                   << "VK_LAYER_GOOGLE_threading"
-                   << "VK_LAYER_LUNARG_parameter_validation"
-                   << "VK_LAYER_LUNARG_object_tracker"
-                   << "VK_LAYER_LUNARG_core_validation"
-                   << "VK_LAYER_LUNARG_image"
-                   << "VK_LAYER_LUNARG_swapchain"
-                   << "VK_LAYER_GOOGLE_unique_objects");
+        inst.setLayers(QByteArrayList()
+                       << "VK_LAYER_GOOGLE_threading"
+                       << "VK_LAYER_LUNARG_parameter_validation"
+                       << "VK_LAYER_LUNARG_object_tracker"
+                       << "VK_LAYER_LUNARG_core_validation"
+                       << "VK_LAYER_LUNARG_image"
+                       << "VK_LAYER_LUNARG_swapchain"
+                       << "VK_LAYER_GOOGLE_unique_objects");
 #endif
-
-    if (!inst->create())
-        qFatal("Failed to create Vulkan instance: %d", inst->errorCode());
+    if (!inst->create()) {
+        qApp->quit();
+    }
     setVulkanInstance(inst);
+
+    // test VulkanPhysicalDevice
+    qDebug() << "GPU Info:";
+    qDebug() << "============================";
+    std::vector<VulkanPhysicalDevice> gpuList = VulkanPhysicalDevice::enumeratePhysicalDevices(inst->vkInstance());
+    for (const auto &gpu : gpuList) {
+        VkPhysicalDeviceProperties props = gpu.getProperties();
+        qDebug() << "name: " << gpu.getGpuName().c_str();
+        qDebug() << "api version: " << gpu.getApiVersion().c_str();
+    }
 
 // 打印vulkan实例支持的的扩展
     QVulkanInfoVector<QVulkanExtension> extensions = inst->supportedExtensions();
@@ -38,13 +47,6 @@ VulkanWindow::VulkanWindow(QWindow *parent)
     qDebug() << "layer: ";
     for (const auto &layer : layers) {
         qDebug() << "\t" << layer.name;
-    }
-
-// 打印物理设备信息
-    QVector<VkPhysicalDeviceProperties> deviceProperties = availablePhysicalDevices();
-    qDebug() << "physical device: ";
-    for (const auto &dev : deviceProperties) {
-        qDebug() << "\t" << dev.deviceName;
     }
 }
 
@@ -81,64 +83,60 @@ void VulkanRenderer::initResources()
 
     printPhysicalDeviceQueueFamilyProperties();
     printPhysicalDeviceMemoryInformation();
-    printPhysicalDeviceProperties();    
-}
+    printPhysicalDeviceProperties();
 
-void VulkanRenderer::initSwapChainResources()
-{
-    qDebug("init swapchain resources");
-    VkFormat colorFormat = vulkanWindow->colorFormat();
-    qDebug() << "color format: " << colorFormat;
-    qDebug() << "swapchain image size: " << vulkanWindow->swapChainImageSize();
-    qDebug() << "window size: " << vulkanWindow->size();
-    VkFormat depthFormat = vulkanWindow->depthStencilFormat();
-    qDebug() << "depth format: " << depthFormat;
-
-}
-
-void VulkanRenderer::releaseSwapChainResources()
-{
-    qDebug("release swapchain resources");
-}
-
-void VulkanRenderer::releaseResources()
-{
-    qDebug("release resource");
-}
-
-void VulkanRenderer::startNextFrame()
-{
-//    static uint f = 0;
-//    qDebug() << "frame " << f++;
-
-    green += 0.005f;
-    if (green > 1.0f)
-        green = 0.0f;
-
-    VkClearColorValue clearColor = {{ 0.0f, green, 0.0f, 1.0f }};
-    VkClearDepthStencilValue clearDS = { 1.0f, 0 };
-    VkClearValue clearValues[2];
-    memset(clearValues, 0, sizeof(clearValues));
-    clearValues[0].color = clearColor;
-    clearValues[1].depthStencil = clearDS;
-
-    VkRenderPassBeginInfo rpBeginInfo;
-    memset(&rpBeginInfo, 0, sizeof(rpBeginInfo));
-
-    rpBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    rpBeginInfo.renderPass = vulkanWindow->defaultRenderPass();
-    rpBeginInfo.framebuffer = vulkanWindow->currentFramebuffer();
-    const QSize sz = vulkanWindow->swapChainImageSize();
-    rpBeginInfo.renderArea.extent.width = sz.width();
-    rpBeginInfo.renderArea.extent.height = sz.height();
-    rpBeginInfo.clearValueCount = 2;
-    rpBeginInfo.pClearValues = clearValues;
-
-    VkCommandBuffer cmdBuf = vulkanWindow->currentCommandBuffer();
-    devFuncs->vkCmdBeginRenderPass(cmdBuf, &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
-    devFuncs->vkCmdEndRenderPass(cmdBuf);
+    VulkanLayersAndExtensions layers(vulkanWindow->vulkanInstance(),
+                                     reinterpret_cast<VkPhysicalDevice>(vulkanWindow->physicalDevice()));
 
 #if 0
+    // Vertex layout
+    VkVertexInputBindingDescription vertexBindingDesc[] = {
+        {
+            0,
+            8 * sizeof(float),
+            VK_VERTEX_INPUT_RATE_VERTEX
+        },
+        {
+            1,
+            6 * sizeof(float),
+            VK_VERTEX_INPUT_RATE_INSTANCE
+        }
+    };
+    VkVertexInputAttributeDescription vertexAttrDesc[] = {
+        {
+            0,
+            0,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            0
+        },
+        {
+            1,
+            0,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            5 * sizeof(float)
+        },
+        {
+            2,
+            1,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            0
+        },
+        {
+            3,
+            1,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            3 * sizeof(float)
+        }
+    };
+
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo;
+    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+    vertexInputInfo.pNext = nullptr;
+    vertexInputInfo.flags = 0;
+    vertexInputInfo.vertexBindingDescriptionCount = sizeof(vertexBindingDesc) / sizeof(vertexBindingDesc[0]);
+    vertexInputInfo.pVertexBindingDescriptions = vertexBindingDesc;
+    vertexInputInfo.vertexAttributeDescriptionCount = sizeof(vertexAttrDesc) / sizeof(vertexAttrDesc[0]);
+    vertexInputInfo.pVertexAttributeDescriptions = vertexAttrDesc;
     // build vertex shader module
     VkShaderModule vtxShaderModule;
     QFile vtxFile(":/shader/vertex.vsh");
@@ -167,9 +165,9 @@ void VulkanRenderer::startNextFrame()
     }
     QByteArray blob1 = vtxFile.readAll();
     VkShaderModuleCreateInfo shaderInfo1 = {};
-    shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    shaderInfo.codeSize = blob1.size();
-    shaderInfo.pCode = reinterpret_cast<const uint32_t *>(blob1.constData());
+    shaderInfo1.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+    shaderInfo1.codeSize = blob1.size();
+    shaderInfo1.pCode = reinterpret_cast<const uint32_t *>(blob1.constData());
     err = devFuncs->vkCreateShaderModule(vulkanWindow->device(),
                                           &shaderInfo1, nullptr,
                                           &fragmentShaderModule);
@@ -207,7 +205,191 @@ void VulkanRenderer::startNextFrame()
                                                 &descriptorSetLayout);
     if (err != VK_SUCCESS)
         qFatal("Failed to create descriptor set layout: %d", err);
+
+
+    // build pipeline
+    VkPipelineCacheCreateInfo pipelineCacheInfo;
+    memset(&pipelineCacheInfo, 0, sizeof(pipelineCacheInfo));
+    pipelineCacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+    err = devFuncs->vkCreatePipelineCache(vulkanWindow->device(), &pipelineCacheInfo,
+                                          nullptr, &pipelineCache);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create pipeline cache: %d", err);
+
+    VkGraphicsPipelineCreateInfo pipelineInfo;
+    memset(&pipelineInfo, 0, sizeof(pipelineInfo));
+    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+
+    VkPipelineShaderStageCreateInfo shaderStages[2] = {
+        {
+            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            nullptr,
+            0,
+            VK_SHADER_STAGE_VERTEX_BIT,
+            vtxShaderModule,
+            "main",
+            nullptr
+        },
+        {
+            VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+            nullptr,
+            0,
+            VK_SHADER_STAGE_FRAGMENT_BIT,
+            fragmentShaderModule,
+            "main",
+            nullptr
+        }
+    };
+    pipelineInfo.stageCount = 2;
+    pipelineInfo.pStages = shaderStages;
+    pipelineInfo.pVertexInputState = &vertexInputInfo;
+
+    VkPipelineInputAssemblyStateCreateInfo ia;
+    memset(&ia, 0, sizeof(ia));
+    ia.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+    ia.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    pipelineInfo.pInputAssemblyState = &ia;
+
+    VkPipelineViewportStateCreateInfo vp;
+    memset(&vp, 0, sizeof(vp));
+    vp.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    vp.viewportCount = 1;
+    vp.scissorCount = 1;
+    pipelineInfo.pViewportState = &vp;
+
+    VkPipelineRasterizationStateCreateInfo rs;
+    memset(&rs, 0, sizeof(rs));
+    rs.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+    rs.polygonMode = VK_POLYGON_MODE_FILL;
+    rs.cullMode = VK_CULL_MODE_BACK_BIT;
+    rs.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+    rs.lineWidth = 1.0f;
+    pipelineInfo.pRasterizationState = &rs;
+
+    VkPipelineMultisampleStateCreateInfo ms;
+    memset(&ms, 0, sizeof(ms));
+    ms.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+    ms.rasterizationSamples = vulkanWindow->sampleCountFlagBits();
+    pipelineInfo.pMultisampleState = &ms;
+
+    VkPipelineDepthStencilStateCreateInfo ds;
+    memset(&ds, 0, sizeof(ds));
+    ds.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    ds.depthTestEnable = VK_TRUE;
+    ds.depthWriteEnable = VK_TRUE;
+    ds.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+    pipelineInfo.pDepthStencilState = &ds;
+
+    VkPipelineColorBlendStateCreateInfo cb;
+    memset(&cb, 0, sizeof(cb));
+    cb.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    VkPipelineColorBlendAttachmentState att;
+    memset(&att, 0, sizeof(att));
+    att.colorWriteMask = 0xF;
+    cb.attachmentCount = 1;
+    cb.pAttachments = &att;
+    pipelineInfo.pColorBlendState = &cb;
+
+    VkDynamicState dynEnable[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
+    VkPipelineDynamicStateCreateInfo dyn;
+    memset(&dyn, 0, sizeof(dyn));
+    dyn.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dyn.dynamicStateCount = sizeof(dynEnable) / sizeof(VkDynamicState);
+    dyn.pDynamicStates = dynEnable;
+    pipelineInfo.pDynamicState = &dyn;
+
+//    pipelineInfo.layout = descriptorSetLayout;
+    pipelineInfo.renderPass = vulkanWindow->defaultRenderPass();
+
+    err = devFuncs->vkCreateGraphicsPipelines(vulkanWindow->device(),
+                                              pipelineCache, 1, &pipelineInfo,
+                                              nullptr, &pipeline);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create graphics pipeline: %d", err);
 #endif
+}
+
+void VulkanRenderer::initSwapChainResources()
+{
+    qDebug("init swapchain resources");
+    VkFormat colorFormat = vulkanWindow->colorFormat();
+    qDebug() << "color format: " << colorFormat;
+    qDebug() << "swapchain image size: " << vulkanWindow->swapChainImageSize();
+    qDebug() << "window size: " << vulkanWindow->size();
+    VkFormat depthFormat = vulkanWindow->depthStencilFormat();
+    qDebug() << "depth format: " << depthFormat;
+
+}
+
+void VulkanRenderer::releaseSwapChainResources()
+{
+    qDebug("release swapchain resources");
+}
+
+void VulkanRenderer::releaseResources()
+{
+    qDebug("release resource");
+}
+
+void VulkanRenderer::startNextFrame()
+{
+//    static uint f = 0;
+//    qDebug() << "frame " << f++;
+
+#if 1
+    green += 0.005f;
+    if (green > 1.0f)
+        green = 0.0f;
+
+    VkClearColorValue clearColor = {{ 0.0f, green, 0.0f, 1.0f }};
+    VkClearDepthStencilValue clearDS = { 1.0f, 0 };
+    VkClearValue clearValues[2];
+    memset(clearValues, 0, sizeof(clearValues));
+    clearValues[0].color = clearColor;
+    clearValues[1].depthStencil = clearDS;
+
+    VkRenderPassBeginInfo rpBeginInfo;
+    memset(&rpBeginInfo, 0, sizeof(rpBeginInfo));
+
+    rpBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpBeginInfo.renderPass = vulkanWindow->defaultRenderPass();
+    rpBeginInfo.framebuffer = vulkanWindow->currentFramebuffer();
+    const QSize sz = vulkanWindow->swapChainImageSize();
+    rpBeginInfo.renderArea.extent.width = sz.width();
+    rpBeginInfo.renderArea.extent.height = sz.height();
+    rpBeginInfo.clearValueCount = 2;
+    rpBeginInfo.pClearValues = clearValues;
+
+    VkCommandBuffer cmdBuf = vulkanWindow->currentCommandBuffer();
+    devFuncs->vkCmdBeginRenderPass(cmdBuf, &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+    devFuncs->vkCmdEndRenderPass(cmdBuf);
+#endif
+
+#if 0
+    VkCommandBuffer cb = vulkanWindow->currentCommandBuffer();
+    const QSize sz = vulkanWindow->swapChainImageSize();
+
+    VkClearColorValue clearColor = {{ 0.67f, 0.84f, 0.9f, 1.0f }};
+    VkClearDepthStencilValue clearDS = { 1, 0 };
+    VkClearValue clearValues[3];
+    memset(clearValues, 0, sizeof(clearValues));
+    clearValues[0].color = clearValues[2].color = clearColor;
+    clearValues[1].depthStencil = clearDS;
+
+    VkRenderPassBeginInfo rpBeginInfo;
+    memset(&rpBeginInfo, 0, sizeof(rpBeginInfo));
+    rpBeginInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    rpBeginInfo.renderPass = vulkanWindow->defaultRenderPass();
+    rpBeginInfo.framebuffer = vulkanWindow->currentFramebuffer();
+    rpBeginInfo.renderArea.extent.width = sz.width();
+    rpBeginInfo.renderArea.extent.height = sz.height();
+    rpBeginInfo.clearValueCount = vulkanWindow->sampleCountFlagBits() > VK_SAMPLE_COUNT_1_BIT ? 3 : 2;
+    rpBeginInfo.pClearValues = clearValues;
+    VkCommandBuffer cmdBuf = vulkanWindow->currentCommandBuffer();
+    devFuncs->vkCmdBeginRenderPass(cmdBuf, &rpBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
+#endif
+
+
 
     vulkanWindow->frameReady();
     vulkanWindow->requestUpdate();

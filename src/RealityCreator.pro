@@ -6,9 +6,9 @@ TEMPLATE = app
 DEFINES += QT_DEPRECATED_WARNINGS
 
 # 支持c++11标准
-CONFIG += c++11
+CONFIG += c++11 exceptions
 
-# linux 环境:
+# linux 环境:`
 unix {
 #如何配置安装vulkan请参 https://vulkan.lunarg.com/doc/sdk/1.1.121.1/linux/getting_started.html，
 #将头文件和库文件目录配置好即可
@@ -26,11 +26,17 @@ LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
 
 SOURCES += \
     MainWindow.cpp \
+    VulkanDevice.cpp \
+    VulkanLayersAndExtensions.cpp \
+    VulkanPhysicalDevice.cpp \
     VulkanWindow.cpp \
     main.cpp
 
 HEADERS += \
     MainWindow.h \
+    VulkanDevice.h \
+    VulkanLayersAndExtensions.h \
+    VulkanPhysicalDevice.h \
     VulkanWindow.h
 
 RESOURCES += \
