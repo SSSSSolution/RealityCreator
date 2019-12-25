@@ -36,6 +36,10 @@ VulkanWindow::VulkanWindow(QWindow *parent)
         qDebug() << "api version: " << gpu.getApiVersion().c_str();
     }
 
+    std::vector<const char *> layerList;
+    std::vector<const char *> extensionList;
+    VulkanDevice device = gpuList[0].createLogicalDevice(layerList, extensionList);
+
 // 打印vulkan实例支持的的扩展
     QVulkanInfoVector<QVulkanExtension> extensions = inst->supportedExtensions();
     qDebug() << "extensions: ";

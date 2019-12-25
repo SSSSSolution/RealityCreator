@@ -12,7 +12,8 @@ class VulkanPhysicalDevice
 public:
     static std::vector<VulkanPhysicalDevice> enumeratePhysicalDevices(VkInstance inst);
 
-//    VkDevice createLogicalDevice();
+    VulkanDevice createLogicalDevice(std::vector<const char*>& layers,
+                                     std::vector<const char*>& extensions);
     VkPhysicalDeviceProperties getProperties() const;
     std::string getGpuName() const;
     std::string getApiVersion() const;
@@ -45,6 +46,9 @@ private:
     } VkPhysicalDeviceMemoryProperties;
     */
     VkPhysicalDeviceMemoryProperties m_memProps;
+
+    std::vector<VkQueueFamilyProperties> m_queueFamilyPropsList;
+    uint32_t m_graphicQueueFamilyIndex;
 
 };
 
