@@ -1,4 +1,5 @@
 #include "VulkanLayersAndExtensions.h"
+#include <algorithm>
 
 VulkanLayersAndExtensions::VulkanLayersAndExtensions(QVulkanInstance *inst, VkPhysicalDevice gpu)
     : m_inst(inst), m_gpu(gpu)
@@ -58,6 +59,64 @@ VkResult VulkanLayersAndExtensions::getInstanceLayerProperties()
         }
 
     }
+}
+
+VkBool32 VulkanLayersAndExtensions::areLayerSupported(std::vector<const char *> &layerNames)
+{
+    uint32_t checkCount = layerNames.size();
+    uint32_t layerCount = layerPropertiesList.size();
+    std::vector<const char *> unsupportLayerNames;
+
+    for (uint32_t i = 0; i < checkCount; i++) {
+        VkBool32 isSupported = 0;
+        for (uint32_t j = 0; j < layerCount; j++) {
+            if (!strcmp(layerNames[i], layerPropertiesList[j].properties.layerName)) {
+                isSupported = 1;
+            }
+        }
+
+        if (!isSupported) {
+            qDebug() << "No Layer support found, removed from layer: "
+                     << layerNames[i];
+            unsupportLayerNames.push_back(layerNames[i]);
+        } else {
+            qDebug() << "Layer supported: " << layerNames[i];
+        }
+    }
+
+    for (auto i : unsupportLayerNames) {
+        auto it = std::find(layerNames.begin(), layerNames.end(), i);
+        if (it != layerNames.end())
+            layerNames.erase(it);
+    }
+
+    return 1;
+}
+
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanLayersAndExtensions::debugFunction(
+        VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
+        uint64_t srcObject, size_t location, int32_t msgCode,
+        const char * pLayerPrefix, const char *pMsg, void *pUserData)
+{
+    if (msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
+        qDebug() << "[VK_DEBUG_REPORT] ERROR: [" << pLayerPrefix
+                 << "] Code" << msgCode << ":" << pMsg;
+    } else if (msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+        qDebug() << "[VK_DEBUG_REPORT] WARNING: [" << pLayerPrefix
+                 << "] Code" << msgCode << ":" << pMsg;
+    } else if (msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
+        qDebug() << "[VK_DEBUG_REPORT] INFORMATION: [" << pLayerPrefix
+                 << "] Code" << msgCode << ":" << pMsg;
+    } else if (msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
+        qDebug() << "[VK_DEBUG_REPORT] PERFORMANCE: [" << pLayerPrefix
+                 << "] Code" << msgCode << ":" << pMsg;
+    } else if (msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
+        qDebug() << "[VK_DEBUG_REPORT] DEBUG: [" << pLayerPrefix
+                 << "] Code" << msgCode << ":" << pMsg;
+    } else {
+        return VK_FALSE;
+    }
+    return VK_TRUE;
 }
 
 VkResult VulkanLayersAndExtensions::getExtensionPropertiesByLayer(LayerProperties &layerProps,

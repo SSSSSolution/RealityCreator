@@ -27,6 +27,7 @@ LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
 SOURCES += \
     MainWindow.cpp \
     VulkanDevice.cpp \
+    VulkanInstance.cpp \
     VulkanLayersAndExtensions.cpp \
     VulkanPhysicalDevice.cpp \
     VulkanWindow.cpp \
@@ -35,6 +36,7 @@ SOURCES += \
 HEADERS += \
     MainWindow.h \
     VulkanDevice.h \
+    VulkanInstance.h \
     VulkanLayersAndExtensions.h \
     VulkanPhysicalDevice.h \
     VulkanWindow.h

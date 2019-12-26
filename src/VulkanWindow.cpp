@@ -5,26 +5,41 @@
 #include "VulkanLayersAndExtensions.h"
 #include <QVulkanLayer>
 #include "VulkanPhysicalDevice.h"
+#include "VulkanInstance.h"
 VulkanWindow::VulkanWindow(QWindow *parent)
     : QVulkanWindow(parent)
 {
+    VulkanInstance *instance = new VulkanInstance;;
+    std::vector<const char *> l1 = {
+        "VK_LAYER_LUNARG_standard_validation"
+    };
+    std::vector<const char *> l2 = {
+        "VK_EXT_acquire_xlib_display",
+        "VK_EXT_debug_report",
+        "VK_EXT_direct_mode_display",
+        "VK_EXT_display_surface_counter",
+        "VK_KHR_display",
+        "VK_KHR_get_physical_device_properties2",
+        "VK_KHR_get_surface_capabilities2",
+        "VK_KHR_surface",
+        "VK_KHR_xcb_surface",
+        "VK_KHR_xlib_surface",
+        "VK_KHR_external_fence_capabilities",
+        "VK_KHR_external_memory_capabilities",
+        "VK_KHR_external_semaphore_capabilities",
+        "VK_EXT_debug_utils"
+    };
+    instance->create(l1, l2);
+
     QVulkanInstance *inst = new QVulkanInstance;
-#ifndef Q_OS_ANDROID
-        inst->setLayers(QByteArrayList() << "VK_LAYER_LUNARG_standard_validation");
-#else
-        inst.setLayers(QByteArrayList()
-                       << "VK_LAYER_GOOGLE_threading"
-                       << "VK_LAYER_LUNARG_parameter_validation"
-                       << "VK_LAYER_LUNARG_object_tracker"
-                       << "VK_LAYER_LUNARG_core_validation"
-                       << "VK_LAYER_LUNARG_image"
-                       << "VK_LAYER_LUNARG_swapchain"
-                       << "VK_LAYER_GOOGLE_unique_objects");
-#endif
+    inst->setVkInstance(instance->getVkInstance());
+
     if (!inst->create()) {
         qApp->quit();
     }
+
     setVulkanInstance(inst);
+    qDebug() << inst->supportedLayers();
 
     // test VulkanPhysicalDevice
     qDebug() << "GPU Info:";

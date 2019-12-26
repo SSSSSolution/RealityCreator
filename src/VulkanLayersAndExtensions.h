@@ -20,6 +20,12 @@ class VulkanLayersAndExtensions
 {
 public:
     VulkanLayersAndExtensions(QVulkanInstance *inst, VkPhysicalDevice gpu);
+    VkBool32 areLayerSupported(std::vector<const char*> &layerNames);
+    VkResult createDebugReportCallback();
+    VKAPI_ATTR static VkBool32 VKAPI_CALL debugFunction(
+            VkFlags msgFlags, VkDebugReportObjectTypeEXT objType,
+            uint64_t srcObject, size_t location, int32_t msgCode,
+            const char * pLayerPrefix, const char *pMsg, void *pUserData);
 
 private:
     VkResult getInstanceLayerProperties();
@@ -33,3 +39,30 @@ private:
 };
 
 #endif // VULKANLAYERSANDEXTENSIONS_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
