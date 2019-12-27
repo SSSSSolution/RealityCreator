@@ -6,6 +6,8 @@
 #include <QVulkanLayer>
 #include "VulkanPhysicalDevice.h"
 #include "VulkanInstance.h"
+#include <QLoggingCategory>
+
 VulkanWindow::VulkanWindow(QWindow *parent)
     : QVulkanWindow(parent)
 {
@@ -29,7 +31,10 @@ VulkanWindow::VulkanWindow(QWindow *parent)
         "VK_KHR_external_semaphore_capabilities",
         "VK_EXT_debug_utils"
     };
+
+//    QLoggingCategory::setFilterRules(QStringLiteral("qt.vulkan=true"));
     instance->create(l1, l2);
+    instance->createDebugReportCallback();
 
     QVulkanInstance *inst = new QVulkanInstance;
     inst->setVkInstance(instance->getVkInstance());

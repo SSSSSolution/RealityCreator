@@ -26,6 +26,9 @@ LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
 
 SOURCES += \
     MainWindow.cpp \
+    VulkanCommandBuffer.cpp \
+    VulkanCommandBufferManager.cpp \
+    VulkanCommandPool.cpp \
     VulkanDevice.cpp \
     VulkanInstance.cpp \
     VulkanLayersAndExtensions.cpp \
@@ -35,6 +38,9 @@ SOURCES += \
 
 HEADERS += \
     MainWindow.h \
+    VulkanCommandBuffer.h \
+    VulkanCommandBufferManager.h \
+    VulkanCommandPool.h \
     VulkanDevice.h \
     VulkanInstance.h \
     VulkanLayersAndExtensions.h \

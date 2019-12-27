@@ -9,9 +9,10 @@ class VulkanDevice
 {
 public:
     VulkanDevice(VkDevice device);
+    VkDevice getVkDevice() const;
 
 private:
-    VkDevice m_device;
+    VkDevice m_vkDevice;
 };
 
 #endif // VULKANDEVICE_H

@@ -14,9 +14,20 @@ public:
     VkInstance getVkInstance();
     VkResult createDebugReportCallback();
 
+    static VKAPI_ATTR VkBool32 VKAPI_CALL debugFunction(VkFlags msgFlags,
+                                                        VkDebugReportObjectTypeEXT objType,
+                                                        uint64_t srcObject,
+                                                        size_t location,
+                                                        int32_t msgCode,
+                                                        const char *layerPrefix,
+                                                        const char *msg,
+                                                        void *userData);
+
+
 private:
     VkInstance instance;
     VkDebugReportCallbackCreateInfoEXT dbgReportInfo = {};
+    VkDebugReportCallbackEXT m_debugReportCallback;
 };
 
 #endif // VULKANINSTANCE_H
