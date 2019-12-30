@@ -33,6 +33,8 @@ SOURCES += \
     VulkanInstance.cpp \
     VulkanLayersAndExtensions.cpp \
     VulkanPhysicalDevice.cpp \
+    VulkanRenderer.cpp \
+    VulkanSwapChain.cpp \
     VulkanWindow.cpp \
     main.cpp
 
@@ -45,6 +47,8 @@ HEADERS += \
     VulkanInstance.h \
     VulkanLayersAndExtensions.h \
     VulkanPhysicalDevice.h \
+    VulkanRenderer.h \
+    VulkanSwapChain.h \
     VulkanWindow.h
 
 RESOURCES += \

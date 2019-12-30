@@ -83,7 +83,7 @@ VulkanDevice VulkanPhysicalDevice::createLogicalDevice(std::vector<const char*>&
 
     ret = vkCreateDevice(m_gpu, &deviceInfo, nullptr, &device);
     assert(ret == VK_SUCCESS);
-    return VulkanDevice(device);
+    return VulkanDevice(device, m_gpu);
 }
 
 VkPhysicalDeviceProperties VulkanPhysicalDevice::getProperties() const

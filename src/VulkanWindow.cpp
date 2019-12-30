@@ -72,6 +72,8 @@ VulkanWindow::VulkanWindow(QWindow *parent)
     for (const auto &layer : layers) {
         qDebug() << "\t" << layer.name;
     }
+
+    VkSurfaceKHR vkSurface = QVulkanInstance::surfaceForWindow(this);
 }
 
 QVulkanWindowRenderer *VulkanWindow::createRenderer()
