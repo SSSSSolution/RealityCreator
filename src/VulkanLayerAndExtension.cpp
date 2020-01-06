@@ -1,6 +1,8 @@
 #include "VulkanLayerAndExtension.h"
+#include "VulkanApplication.h"
 #include <string.h>
 #include <algorithm>
+#include <iostream>
 
 VulkanLayerAndExtension::VulkanLayerAndExtension()
 {
@@ -38,16 +40,54 @@ VkResult VulkanLayerAndExtension::getExtensionProperties(LayerProperties &layerP
     char *layerName = layerProps.properties.layerName;
 
     do {
-        result = vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, nullptr);
+        if (gpu)
+            result = vkEnumerateDeviceExtensionProperties(*gpu, layerName, &extensionCount, nullptr);
+        else
+            result = vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, nullptr);
 
         if (result != VK_SUCCESS || extensionCount == 0)
             continue;
 
         layerProps.extensions.resize(extensionCount);
 
-        result = vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, layerProps.extensions.data());
+        if (gpu)
+            result = vkEnumerateDeviceExtensionProperties(*gpu, layerName, &extensionCount, layerProps.extensions.data());
+        else
+            result = vkEnumerateInstanceExtensionProperties(layerName, &extensionCount, layerProps.extensions.data());
     } while(result == VK_INCOMPLETE);
 
+    return result;
+}
+
+VkResult VulkanLayerAndExtension::getDeviceExtensionProperties(VkPhysicalDevice *gpu)
+{
+    VkResult result;
+
+    // Query all the extesions for each layer and store it.
+    std::cout << "Device extensions" << std::endl;
+    std::cout << "=================" << std::endl;
+    VulkanApplication *appObj = VulkanApplication::getInstance();
+    std::vector<LayerProperties> *instanceLayerProp = &appObj->getInstance()->instanceObj.layerExtension.layerPropertyList;
+    for (auto globalLayerProp : *instanceLayerProp)
+    {
+        LayerProperties layerProps;
+        layerProps.properties = globalLayerProp.properties;
+
+        if ((result = getExtensionProperties(layerProps, gpu)) != VK_SUCCESS)
+            continue;
+
+        std::cout << "\n" << globalLayerProp.properties.description <<  "\n\t|\n\t|---[Layer Name]--> "
+                  << globalLayerProp.properties.layerName << "\n";
+        layerPropertyList.push_back(layerProps);
+
+        if (layerProps.extensions.size() != 0) {
+            for (auto j : layerProps.extensions) {
+                std::cout <<  "\t\t|\n\t\t|---[Device Extesion]--> " << j.extensionName << "\n";
+            }
+        } else {
+            std::cout << "\t\t|\n\t\t|---[Device Extesion]--> No extension found \n";
+        }
+    }
     return result;
 }
 

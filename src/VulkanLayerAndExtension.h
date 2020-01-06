@@ -20,7 +20,7 @@ public:
     VkResult getExtensionProperties(LayerProperties &layerProps,
                                     VkPhysicalDevice *gpu = nullptr);
 
-//    VkResult getDeviceExtensionProperties(VkPhysicalDevice *gpu);
+    VkResult getDeviceExtensionProperties(VkPhysicalDevice *gpu);
 
     VkBool32 areLayersSupported(std::vector<const char *> &layerNames);
 //    VkResult createDebugReportCallback();

@@ -30,7 +30,7 @@ private:
 
     VkResult createVulkanInstance(std::vector<const char*>& layers,
                                   std::vector<const char*>& extensions,
-                                  const char *applicationNames);
+                                  const char *appNames);
     VkResult handShakeWithDevice(VkPhysicalDevice *gpu,
                                  std::vector<const char*> &layers,
                                  std::vector<const char *> &extensions);
