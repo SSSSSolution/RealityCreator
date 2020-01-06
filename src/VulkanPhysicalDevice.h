@@ -12,9 +12,11 @@ class VulkanPhysicalDevice
 public:
     static std::vector<VulkanPhysicalDevice> enumeratePhysicalDevices(VkInstance inst);
 
+    VkPhysicalDevice getVkPhysicalDevice();
     VulkanDevice createLogicalDevice(std::vector<const char*>& layers,
                                      std::vector<const char*>& extensions);
     VkPhysicalDeviceProperties getProperties() const;
+    VkPhysicalDeviceMemoryProperties getMemoryProperties() const;
     std::string getGpuName() const;
     std::string getApiVersion() const;
 

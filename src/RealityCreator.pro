@@ -26,30 +26,40 @@ LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
 
 SOURCES += \
     MainWindow.cpp \
+    VulkanApplication.cpp \
+    VulkanBuffer.cpp \
     VulkanCommandBuffer.cpp \
     VulkanCommandBufferManager.cpp \
     VulkanCommandPool.cpp \
     VulkanDevice.cpp \
+    VulkanDrawable.cpp \
     VulkanInstance.cpp \
-    VulkanLayersAndExtensions.cpp \
+    VulkanLayerAndExtension.cpp \
     VulkanPhysicalDevice.cpp \
     VulkanRenderer.cpp \
+    VulkanShader.cpp \
     VulkanSwapChain.cpp \
     VulkanWindow.cpp \
+    Wrappers.cpp \
     main.cpp
 
 HEADERS += \
     MainWindow.h \
+    VulkanApplication.h \
+    VulkanBuffer.h \
     VulkanCommandBuffer.h \
     VulkanCommandBufferManager.h \
     VulkanCommandPool.h \
     VulkanDevice.h \
+    VulkanDrawable.h \
     VulkanInstance.h \
-    VulkanLayersAndExtensions.h \
+    VulkanLayerAndExtension.h \
     VulkanPhysicalDevice.h \
     VulkanRenderer.h \
+    VulkanShader.h \
     VulkanSwapChain.h \
-    VulkanWindow.h
+    VulkanWindow.h \
+    Wrappers.h
 
 RESOURCES += \
     shaders.qrc

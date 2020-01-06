@@ -18,11 +18,12 @@ if (fp##entrypoint == nullptr) {                                                
     }                                                                                       \
 }
 
-VulkanSwapChain::VulkanSwapChain(VulkanInstance *inst, VulkanDevice *device)
+VulkanSwapChain::VulkanSwapChain(VulkanInstance *inst, VulkanDevice *device, VkSurfaceKHR surface)
     : m_instance(inst), m_device(device)
 {
     assert(m_instance != nullptr);
     assert(m_device != nullptr);
+    scPublicVars.surface = surface;
 }
 
 void VulkanSwapChain::intializeSwapChain()
@@ -49,11 +50,6 @@ void VulkanSwapChain::createSwapChainExtensions()
     DEVICE_FUNC_PTR(device, QueuePresentKHR);
 }
 
-VkResult VulkanSwapChain::createSurface()
-{
-
-}
-
 void VulkanSwapChain::createSwapChain(const VkCommandBuffer& cmd)
 {
     getSurfaceCapabilitiesAndPresentMode();
@@ -65,8 +61,34 @@ void VulkanSwapChain::getSurfaceCapabilitiesAndPresentMode()
     VkResult result;
     VkPhysicalDevice gpu = m_device->getPhysicalDevice();
 
-//    result = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, scPublicVars.surface,
-//                                                       &scPri);
+    result = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, scPublicVars.surface,
+                                                       &scPrivateVars.surfCapabilities);
+    assert(result == VK_SUCCESS);
+
+    result = fpGetPhysicalDeviceSurfacePresentModesKHR(gpu, scPublicVars.surface,
+                                                       &scPrivateVars.presentModeCount, nullptr);
+    assert(result == VK_SUCCESS);
+    scPrivateVars.presentModes.clear();
+    scPrivateVars.presentModes.resize(scPrivateVars.presentModeCount);
+    assert(scPrivateVars.presentModes.size() >= 1);
+
+    result = fpGetPhysicalDeviceSurfacePresentModesKHR(gpu, scPublicVars.surface,
+                                                       &scPrivateVars.presentModeCount,
+                                                       scPrivateVars.presentModes.data());
+    assert(result == VK_SUCCESS);
+
+    if (scPrivateVars.surfCapabilities.currentExtent.width == (uint32_t)-1)
+    {
+        // if the surface width and height are not defined, set them equal to image size
+//        scPrivateVars.swapChainExtent.width =
+    } else {
+        scPrivateVars.swapChainExtent = scPrivateVars.surfCapabilities.currentExtent;
+    }
+}
+
+void VulkanSwapChain::managePresentMode()
+{
+
 }
 
 

@@ -55,6 +55,11 @@ std::vector<VulkanPhysicalDevice> VulkanPhysicalDevice::enumeratePhysicalDevices
     return gpuList;
 }
 
+VkPhysicalDevice VulkanPhysicalDevice::getVkPhysicalDevice()
+{
+    return m_gpu;
+}
+
 VulkanDevice VulkanPhysicalDevice::createLogicalDevice(std::vector<const char*>& layers,
                                                        std::vector<const char*>& extensions)
 {
@@ -83,12 +88,17 @@ VulkanDevice VulkanPhysicalDevice::createLogicalDevice(std::vector<const char*>&
 
     ret = vkCreateDevice(m_gpu, &deviceInfo, nullptr, &device);
     assert(ret == VK_SUCCESS);
-    return VulkanDevice(device, m_gpu);
+    return VulkanDevice(device, this);
 }
 
 VkPhysicalDeviceProperties VulkanPhysicalDevice::getProperties() const
 {
     return m_props;
+}
+
+VkPhysicalDeviceMemoryProperties VulkanPhysicalDevice::getMemoryProperties() const
+{
+    return m_memProps;
 }
 
 std::string VulkanPhysicalDevice::getGpuName() const

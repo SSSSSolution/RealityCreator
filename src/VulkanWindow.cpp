@@ -2,7 +2,7 @@
 #include <QVulkanFunctions>
 #include <QApplication>
 #include <QFile>
-#include "VulkanLayersAndExtensions.h"
+#include "VulkanLayerAndExtension.h"
 #include <QVulkanLayer>
 #include "VulkanPhysicalDevice.h"
 #include "VulkanInstance.h"
@@ -74,6 +74,11 @@ VulkanWindow::VulkanWindow(QWindow *parent)
     }
 
     VkSurfaceKHR vkSurface = QVulkanInstance::surfaceForWindow(this);
+
+    // test vkGetSwapchainStatusKHR
+//     PFN_vkGetSwapchainStatusKHR vkGetSwapchainStatusKHR;
+//     VkSwapchainKHR swapchain;
+//     VkSwapchainCreateInfoKHR *info;
 }
 
 QVulkanWindowRenderer *VulkanWindow::createRenderer()

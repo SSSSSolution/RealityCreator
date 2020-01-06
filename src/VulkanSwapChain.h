@@ -12,9 +12,30 @@ struct SwapChainBuffer {
 
 struct SwapChainPrivateVariables
 {
+    // store the image surface capabilities
     VkSurfaceCapabilitiesKHR surfCapabilities;
 
+    // store the number of present mode support by the implementation
     uint32_t presentModeCount;
+
+    // Arrays for retrived present modes
+    std::vector<VkPresentModeKHR> presentModes;
+
+    // size of the swap color images
+    VkExtent2D swapChainExtent;
+
+    // Number of color images supported by the implementation
+    uint32_t desiredNumberOfSwapChainImages;
+
+    VkSurfaceTransformFlagBitsKHR preTransform;
+
+    // Stores present mode bitwise flag for the creation of swap chain
+    VkPresentModeKHR swapChainPresentMode;
+
+    // The retrived drawing color swap chain images
+    std::vector<VkImage> swapChainImages;
+
+    std::vector<VkSurfaceFormatKHR> surfFormats;
 };
 
 struct SwapChainPublicVariables
@@ -44,7 +65,7 @@ struct SwapChainPublicVariables
 class VulkanSwapChain
 {
 public:
-    VulkanSwapChain(VulkanInstance *inst, VulkanDevice *device);
+    VulkanSwapChain(VulkanInstance *inst, VulkanDevice *device, VkSurfaceKHR surface);
     ~VulkanSwapChain() {}
 
     void intializeSwapChain();
@@ -53,8 +74,8 @@ public:
 
 private:
     void createSwapChainExtensions();
-    VkResult createSurface();
     void getSurfaceCapabilitiesAndPresentMode();
+    void managePresentMode();
 
 public:
     SwapChainPublicVariables scPublicVars;
@@ -76,7 +97,7 @@ private:
     PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR;
     PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
 
-//    SwapChainPrivateVaria
+    SwapChainPrivateVariables scPrivateVars;
 };
 
 #endif // VULKANSWAPCHAIN_H
