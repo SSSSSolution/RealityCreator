@@ -36,6 +36,7 @@ SOURCES += \
     VulkanInstance.cpp \
     VulkanLayerAndExtension.cpp \
     VulkanPhysicalDevice.cpp \
+    VulkanPipeline.cpp \
     VulkanRenderer.cpp \
     VulkanShader.cpp \
     VulkanSwapChain.cpp \
@@ -55,6 +56,7 @@ HEADERS += \
     VulkanInstance.h \
     VulkanLayerAndExtension.h \
     VulkanPhysicalDevice.h \
+    VulkanPipeline.h \
     VulkanRenderer.h \
     VulkanShader.h \
     VulkanSwapChain.h \
