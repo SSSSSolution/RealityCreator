@@ -14,11 +14,11 @@ public:
     ~VulkanDrawable();
 
     void prepare();
-//    void render();
-//    void initViewports(VkCommandBuffer *cmd);
-//    void initScissors(VkCommandBuffer *cmd);
+    void render();
+    void initViewports(VkCommandBuffer *cmd);
+    void initScissors(VkCommandBuffer *cmd);
 
-//    void destroyCommandBuffer();
+    void destroyCommandBuffer();
 
     void createVertexBuffer(const void *vertexData,
                             uint32_t dataSize,
