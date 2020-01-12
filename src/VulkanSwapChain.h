@@ -1,9 +1,12 @@
 #ifndef VULKANSWAPCHAIN_H
 #define VULKANSWAPCHAIN_H
 
-#include <vulkan/vulkan.h>
+#include "headers.h"
 #include "VulkanInstance.h"
 #include "VulkanDevice.h"
+
+class VulkanApplication;
+class VulkanRenderer;
 
 struct SwapChainBuffer {
     VkImage image;
@@ -12,16 +15,16 @@ struct SwapChainBuffer {
 
 struct SwapChainPrivateVariables
 {
-    // store the image surface capabilities
+    // Store the image surface capabilities
     VkSurfaceCapabilitiesKHR surfCapabilities;
 
-    // store the number of present mode support by the implementation
+    // Stores the number of present mode support by the implementation
     uint32_t presentModeCount;
 
     // Arrays for retrived present modes
     std::vector<VkPresentModeKHR> presentModes;
 
-    // size of the swap color images
+    // Size of the swap chain color images
     VkExtent2D swapChainExtent;
 
     // Number of color images supported by the implementation
@@ -30,10 +33,10 @@ struct SwapChainPrivateVariables
     VkSurfaceTransformFlagBitsKHR preTransform;
 
     // Stores present mode bitwise flag for the creation of swap chain
-    VkPresentModeKHR swapChainPresentMode;
+    VkPresentModeKHR swapchainPresentMode;
 
     // The retrived drawing color swap chain images
-    std::vector<VkImage> swapChainImages;
+    std::vector<VkImage> swapchainImages;
 
     std::vector<VkSurfaceFormatKHR> surfFormats;
 };
@@ -55,27 +58,31 @@ struct SwapChainPublicVariables
     // Semaphore for sync purpose
     VkSemaphore presentCompleteSemaphore;
 
-    // current drawing surface index in use
+    // Current drawing surface index in use
     uint32_t currentColorBuffer;
 
-    // format of the image
+    // Format of the image
     VkFormat format;
 };
 
-class VulkanSwapChain
-{
+class VulkanSwapChain {
 public:
-    VulkanSwapChain(VulkanInstance *inst, VulkanDevice *device, VkSurfaceKHR surface);
-    ~VulkanSwapChain() {}
+    VulkanSwapChain(VulkanRenderer *rendererObj);
+    ~VulkanSwapChain();
 
     void intializeSwapChain();
     void createSwapChain(const VkCommandBuffer &cmd);
-    void destroySwapChain(){}
+    void destroySwapChain();
 
 private:
-    void createSwapChainExtensions();
+    VkResult createSwapChainExtensions();
+    void getSupportedFormats();
+    VkResult createSurface();
+    uint32_t getGraphicsQueueWithPresentationSupport();
     void getSurfaceCapabilitiesAndPresentMode();
     void managePresentMode();
+    void createSwapChainColorImages();
+    void createColorImageView(const VkCommandBuffer &cmd);
 
 public:
     SwapChainPublicVariables scPublicVars;
@@ -83,21 +90,73 @@ public:
     PFN_vkAcquireNextImageKHR fpAcquireNextImageKHR;
 
 private:
-    VulkanInstance *m_instance;
-    VulkanDevice *m_device;
-
     PFN_vkGetPhysicalDeviceSurfaceSupportKHR fpGetPhysicalDeviceSurfaceSupportKHR;
     PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
     PFN_vkGetPhysicalDeviceSurfaceFormatsKHR fpGetPhysicalDeviceSurfaceFormatsKHR;
-    PFN_vkGetPhysicalDeviceSurfacePresentModesKHR fpGetPhysicalDeviceSurfacePresentModesKHR;
+    PFN_vkGetPhysicalDeviceSurfacePresentModesKHR fpGetPhysicalDeviceSurfacePresentModeKHR;
     PFN_vkDestroySurfaceKHR fpDestroySurfaceKHR;
 
-    // layer extensions debugging
+    // Layer extensions debugging
     PFN_vkCreateSwapchainKHR fpCreateSwapchainKHR;
     PFN_vkDestroySwapchainKHR fpDestroySwapchainKHR;
     PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
 
+    // User define structure containing private variables used
+    // by the swap chain private and public functions.
     SwapChainPrivateVariables scPrivateVars;
+    VulkanRenderer *rendererObj;
+    VulkanApplication *appObj;
 };
 
 #endif // VULKANSWAPCHAIN_H
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

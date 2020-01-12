@@ -36,7 +36,6 @@ VkResult VulkanInstance::createInstance(std::vector<const char *> &layers,
     assert(ret == VK_SUCCESS);
 
     return ret;
-
 }
 
 void VulkanInstance::destroyInstance()

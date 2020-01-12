@@ -1,11 +1,13 @@
 #include "VulkanSwapChain.h"
+#include "VulkanRenderer.h"
+#include "VulkanApplication.h"
 #include <assert.h>
-#include <QDebug>
+#include <iostream>
 
 #define INSTANCE_FUNC_PTR(instance, entrypoint) {											\
     fp##entrypoint = (PFN_vk##entrypoint) vkGetInstanceProcAddr(instance, "vk"#entrypoint); \
     if (fp##entrypoint == nullptr) {                                                        \
-        qDebug() << "Unable to locate the vkGetDeviceProcAddr: vk"#entrypoint;				\
+        std::cout << "Unable to locate the vkGetDeviceProcAddr: vk"#entrypoint;				\
         exit(-1);																			\
     }														 								\
 }
@@ -13,83 +15,132 @@
 #define DEVICE_FUNC_PTR(dev, entrypoint) {                                                  \
     fp##entrypoint = (PFN_vk##entrypoint) vkGetDeviceProcAddr(dev, "vk"#entrypoint);        \
 if (fp##entrypoint == nullptr) {                                                            \
-        qDebug() << "Unable to locate the vkGetDeviceProcAddr: vk"#entrypoint;              \
+        std::cout << "Unable to locate the vkGetDeviceProcAddr: vk"#entrypoint;              \
         exit(-1);                                                                           \
     }                                                                                       \
 }
 
-VulkanSwapChain::VulkanSwapChain(VulkanInstance *inst, VulkanDevice *device, VkSurfaceKHR surface)
-    : m_instance(inst), m_device(device)
+VulkanSwapChain::VulkanSwapChain(VulkanRenderer *rendererObj)
+    : rendererObj(rendererObj)
 {
-    assert(m_instance != nullptr);
-    assert(m_device != nullptr);
-    scPublicVars.surface = surface;
+    appObj = VulkanApplication::getInstance();
 }
 
-void VulkanSwapChain::intializeSwapChain()
+VulkanSwapChain::~VulkanSwapChain()
 {
-    // Querying swapchain extensions
-    createSwapChainExtensions();
+    scPrivateVars.swapchainImages.clear();
+    scPrivateVars.surfFormats.clear();
+    scPrivateVars.presentModes.clear();
 }
 
-void VulkanSwapChain::createSwapChainExtensions()
+VkResult VulkanSwapChain::createSwapChainExtensions()
 {
-    VkInstance instance = m_instance->getVkInstance();
-    VkDevice device = m_device->getVkDevice();
+    // Dependency on createPresentationWindow()
+    VkInstance &instance = appObj->instanceObj.instance;
+    VkDevice &device = appObj->deviceObj->device;
 
+    // Get Instance based swap chain extension function pointer
     INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfaceSupportKHR);
     INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfaceCapabilitiesKHR);
     INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfaceFormatsKHR);
     INSTANCE_FUNC_PTR(instance, GetPhysicalDeviceSurfacePresentModesKHR);
     INSTANCE_FUNC_PTR(instance, DestroySurfaceKHR);
 
+    // Get Device based swap chain extensions function pointer
     DEVICE_FUNC_PTR(device, CreateSwapchainKHR);
     DEVICE_FUNC_PTR(device, DestroySwapchainKHR);
     DEVICE_FUNC_PTR(device, GetSwapchainImagesKHR);
     DEVICE_FUNC_PTR(device, AcquireNextImageKHR);
     DEVICE_FUNC_PTR(device, QueuePresentKHR);
+
+    return VK_SUCCESS;
 }
 
-void VulkanSwapChain::createSwapChain(const VkCommandBuffer& cmd)
-{
-    getSurfaceCapabilitiesAndPresentMode();
-}
-
-
-void VulkanSwapChain::getSurfaceCapabilitiesAndPresentMode()
+VkResult VulkanSwapChain::createSurface()
 {
     VkResult result;
-    VkPhysicalDevice gpu = m_device->getPhysicalDevice();
+    // Depends on createPresentationWindow(), need an empty window
 
-    result = fpGetPhysicalDeviceSurfaceCapabilitiesKHR(gpu, scPublicVars.surface,
-                                                       &scPrivateVars.surfCapabilities);
+    VkInstance &instance = appObj->instanceObj.instance;
+
+#ifdef _WIN32
+    VkWin32SurfaceCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+    createInfo.pNext = nullptr;
+    createInfo.hinstance = rendererObj->connection;
+    createInfo.hwnd = rendererObj->window;
+
+    result = vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &scPublicVars.surface);
+#else
+#endif
+
     assert(result == VK_SUCCESS);
-
-    result = fpGetPhysicalDeviceSurfacePresentModesKHR(gpu, scPublicVars.surface,
-                                                       &scPrivateVars.presentModeCount, nullptr);
-    assert(result == VK_SUCCESS);
-    scPrivateVars.presentModes.clear();
-    scPrivateVars.presentModes.resize(scPrivateVars.presentModeCount);
-    assert(scPrivateVars.presentModes.size() >= 1);
-
-    result = fpGetPhysicalDeviceSurfacePresentModesKHR(gpu, scPublicVars.surface,
-                                                       &scPrivateVars.presentModeCount,
-                                                       scPrivateVars.presentModes.data());
-    assert(result == VK_SUCCESS);
-
-    if (scPrivateVars.surfCapabilities.currentExtent.width == (uint32_t)-1)
-    {
-        // if the surface width and height are not defined, set them equal to image size
-//        scPrivateVars.swapChainExtent.width =
-    } else {
-        scPrivateVars.swapChainExtent = scPrivateVars.surfCapabilities.currentExtent;
-    }
+    return result;
 }
 
-void VulkanSwapChain::managePresentMode()
+uint32_t VulkanSwapChain::getGraphicsQueueWithPresentationSupport()
 {
+    VulkanDevice *device = appObj->deviceObj;
+    uint32_t queueCount = device->queueFamilyCount;
+    VkPhysicalDevice gpu = *device->gpu;
+    std::vector<VkQueueFamilyProperties> &queueProps = device->queueFamilyProps;
+
+    VkBool32 *supportsPresent = (VkBool32*)malloc(queueCount * sizeof(VkBool32));
+    for (uint32_t i = 0; i < queueCount; i++)
+    {
+        fpGetPhysicalDeviceSurfaceSupportKHR(gpu, i, scPublicVars.surface, &supportsPresent[i]);
+    }
+
+    // Search for a graphics queue and a present queue in the array of queue
+    // family, try to find one that supports both
+    uint32_t graphicsQueueNodeIndex = UINT32_MAX;
+    uint32_t presentQueueNodeIndex = UINT32_MAX;
+    for (uint32_t i = 0; i < queueCount; i++)
+    {
+    }
+
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

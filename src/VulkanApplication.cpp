@@ -80,13 +80,19 @@ void VulkanApplication::initialize()
 
     instanceObj.layerExtension.areLayersSupported(layerNames);
 
+    createVulkanInstance(layerNames, instanceExtensionNames, title);
+
+//    if (debugFlag)
+//        instanceObj.layerExtension.createDebugReportCallback();
+
     std::vector<VkPhysicalDevice> gpuList;
+    enumeratePhysicalDevices(gpuList);
 
     if (gpuList.size() > 0)
         handShakeWithDevice(&gpuList[0], layerNames, deviceExtensionNames);
 
-    rendererObj = new VulkanRenderer(this, deviceObj);
-    rendererObj->initialize();
+//    renderObj = new VulkanRenderer(this, deviceObj);
+//    rendererObj->initialize();
 }
 
 

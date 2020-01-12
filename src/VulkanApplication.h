@@ -3,9 +3,10 @@
 
 #include "VulkanInstance.h"
 #include "VulkanDevice.h"
-#include "VulkanRenderer.h"
 #include <memory>
 #include <mutex>
+
+class VulkanRenderer;
 
 class VulkanApplication
 {
@@ -20,11 +21,6 @@ public:
     bool render();
     void deInitialize();
 
-public:
-    VulkanInstance instanceObj;
-    VulkanDevice *deviceObj;
-    VulkanRenderer *rendererObj;
-
 private:
     VulkanApplication();
 
@@ -35,6 +31,11 @@ private:
                                  std::vector<const char*> &layers,
                                  std::vector<const char *> &extensions);
     VkResult enumeratePhysicalDevices(std::vector<VkPhysicalDevice> &gpus);
+
+public:
+    VulkanInstance instanceObj;
+    VulkanDevice *deviceObj;
+    VulkanRenderer *rendererObj;
 
 private:
     static std::unique_ptr<VulkanApplication> instance;
