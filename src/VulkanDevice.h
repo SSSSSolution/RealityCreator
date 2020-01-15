@@ -1,7 +1,7 @@
 #ifndef VULKANDEVICE_H
 #define VULKANDEVICE_H
 
-#include <vulkan/vulkan.h>
+#include "headers.h"
 #include <vector>
 #include "VulkanLayerAndExtension.h"
 

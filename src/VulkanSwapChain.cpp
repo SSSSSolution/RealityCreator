@@ -33,7 +33,7 @@ VulkanSwapChain::~VulkanSwapChain()
     scPrivateVars.presentModes.clear();
 }
 
-VkResult VulkanSwapChain::createSwapChainExtensions()
+void VulkanSwapChain::createSwapChainExtensions()
 {
     // Dependency on createPresentationWindow()
     VkInstance &instance = appObj->instanceObj.instance;
@@ -52,8 +52,6 @@ VkResult VulkanSwapChain::createSwapChainExtensions()
     DEVICE_FUNC_PTR(device, GetSwapchainImagesKHR);
     DEVICE_FUNC_PTR(device, AcquireNextImageKHR);
     DEVICE_FUNC_PTR(device, QueuePresentKHR);
-
-    return VK_SUCCESS;
 }
 
 VkResult VulkanSwapChain::createSurface()
@@ -72,6 +70,11 @@ VkResult VulkanSwapChain::createSurface()
 
     result = vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &scPublicVars.surface);
 #else
+    VkXcbSurfaceCreateInfoKHR createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_XCB_SURFACE_CREATE_INFO_KHR;
+    createInfo.pNext = nullptr;
+    createInfo.connection = rendererObj->connection;
+    createInfo.window = rendererObj->window;
 #endif
 
     assert(result == VK_SUCCESS);
@@ -312,7 +315,7 @@ void VulkanSwapChain::createColorImageView(const VkCommandBuffer &cmd)
         imgViewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         imgViewInfo.flags = 0;
 
-        sc_buffer.image = scPrivateVars.swapChainImages[i];
+        sc_buffer.image = scPrivateVars.swapchainImages[i];
 
         // Since the swapchain is not owned by us we cannot set the image layout
         // upon setting the implementation may give error, the images layout were

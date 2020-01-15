@@ -75,7 +75,7 @@ public:
     void destroySwapChain();
 
 private:
-    VkResult createSwapChainExtensions();
+    void createSwapChainExtensions();
     void getSupportedFormats();
     VkResult createSurface();
     uint32_t getGraphicsQueueWithPresentationSupport();

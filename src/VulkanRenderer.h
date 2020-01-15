@@ -64,7 +64,12 @@ public:
     char name[APP_NAME_STR_LEN];
     HWND window;
 #else
+    xcb_connection_t        *connection;
+    xcb_screen_t            *screen;
+    xcb_window_t             window;
+    xcb_intern_atom_reply_t *reply;
 #endif // _WIN32
+
     struct Depth {
         VkFormat format;
         VkImage image;

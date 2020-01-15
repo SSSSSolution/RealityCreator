@@ -8,6 +8,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define VK_USE_PLATFORM_WIN32_KHR
 #else
+#define VK_USE_PLATFORM_XCB_KHR
 #endif // _WIN32
 
 
