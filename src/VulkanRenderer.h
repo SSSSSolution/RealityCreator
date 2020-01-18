@@ -52,6 +52,7 @@ public:
     void destroyCommandBuffer();
     void destroyCommandPool();
     void destroyDepthBuffer();
+    void destroyDrawableVertexBuffer();
     void destroyRenderpass();
     void destroyFramebuffers();
     void destroyPipeline();

@@ -62,7 +62,8 @@ HEADERS += \
     VulkanSwapChain.h \
     VulkanWindow.h \
     Wrappers.h \
-    headers.h
+    headers.h \
+    meshdata.h
 
 RESOURCES += \
     shaders.qrc

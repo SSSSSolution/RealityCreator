@@ -1,5 +1,8 @@
 #include "Wrappers.h"
 #include <assert.h>
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 void CommandBufferMgr::allocCommandBuffer(const VkDevice *device, const VkCommandPool cmdPool, VkCommandBuffer *cmdBuf, const VkCommandBufferAllocateInfo *commandBufferInfo)
 {
@@ -93,8 +96,31 @@ void CommandBufferMgr::submitCommandBuffer(const VkQueue &queue,
     assert(ret == VK_SUCCESS);
 }
 
+void *readFile(const char *spvFileName, size_t *fileSize)
+{
+    FILE *fp = fopen(spvFileName, "rb");
+    if (!fp) {
+        return nullptr;
+    }
 
+    size_t retval;
+    long int size;
 
+    fseek(fp, 0L, SEEK_END);
+    size = ftell(fp);
+
+    fseek(fp, 0L, SEEK_SET);
+
+    void *spvShader = malloc(size+1);
+    memset(spvShader, 0, size+1);
+
+    retval = fread(spvShader, size, 1, fp);
+    assert(retval == 1);
+
+    *fileSize = size;
+    fclose(fp);
+    return spvShader;
+}
 
 
 

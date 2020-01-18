@@ -15,6 +15,7 @@ public:
 
     void prepare();
     void render();
+    void setPipeline(VkPipeline *vulkanPipeline) { pipeline = vulkanPipeline; }
     void initViewports(VkCommandBuffer *cmd);
     void initScissors(VkCommandBuffer *cmd);
 
@@ -47,6 +48,8 @@ private:
     VkRect2D scissor;
     VkSemaphore presentCompleteSemaphore;
     VkSemaphore drawingCompleteSemaphore;
+
+    VkPipeline *pipeline;
 };
 
 #endif // VULKANDRAWABLE_H

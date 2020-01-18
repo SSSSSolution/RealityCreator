@@ -21,4 +21,7 @@ public:
                                     const VkFence &fence = VK_NULL_HANDLE);
 
 };
+
+void *readFile(const char *spvFileName, size_t *fileSize);
+
 #endif // WRAPPESR_H

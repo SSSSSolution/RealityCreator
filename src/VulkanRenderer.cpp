@@ -6,6 +6,7 @@
 #include <assert.h>
 #include <string.h>
 #include "Wrappers.h"
+#include "meshdata.h"
 
 VulkanRenderer::VulkanRenderer(VulkanApplication *appObj, VulkanDevice *deviceObj)
     : appObj(appObj), deviceObj(deviceObj)
@@ -31,6 +32,22 @@ void VulkanRenderer::initialize()
     swapChainObj->intializeSwapChain();
 
     createCommandPool();
+
+    // Build the vertex buffer
+    createVertexBuffer();
+
+    const bool includeDepth = true;
+    // Create the render pass now...
+    createRenderPass(includeDepth);
+
+    // Use render pass and create frame buffer
+    createFrameBuffer(includeDepth);
+
+    // Create the vertex and fragment shader
+    createShaders();
+
+    // Manage the pipeline state objects
+    createPipelineStateManagement();
 }
 
 void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int &windowHeight)
@@ -201,7 +218,190 @@ void VulkanRenderer::createRenderPass(bool includeDepth, bool clear)
     VkAttachmentReference colorReference = {};
     colorReference.attachment = 0;
     colorReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthReference = {};
+    depthReference.attachment = 1;
+    depthReference.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDescription subpass = {};
+    subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+    subpass.flags = 0;
+    subpass.inputAttachmentCount = 0;
+    subpass.pInputAttachments = nullptr;
+    subpass.colorAttachmentCount = 1;
+    subpass.pColorAttachments = &colorReference;
+    subpass.pResolveAttachments = nullptr;
+    subpass.pDepthStencilAttachment = includeDepth ? &depthReference : nullptr;
+    subpass.preserveAttachmentCount = 0;
+    subpass.pPreserveAttachments = nullptr;
+
+    // specify the attachment and subpass associate with render pass
+    VkRenderPassCreateInfo rpInfo = {};
+    rpInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+    rpInfo.pNext = nullptr;
+    rpInfo.attachmentCount = includeDepth ? 2 : 1;
+    rpInfo.pAttachments = attachments;
+    rpInfo.subpassCount = 1;
+    rpInfo.pSubpasses = &subpass;
+    rpInfo.dependencyCount = 0;
+    rpInfo.pDependencies = nullptr;
+
+    // create the render pass object
+    result = vkCreateRenderPass(deviceObj->device, &rpInfo, nullptr, &renderPass);
+    assert(result == VK_SUCCESS);
 }
+
+void VulkanRenderer::createFrameBuffer(bool includeDepth)
+{
+    VkResult result;
+    VkImageView attachments[2];
+    attachments[1] = depth.view;
+
+    VkFramebufferCreateInfo fbInfo = {};
+    fbInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+    fbInfo.pNext = nullptr;
+    fbInfo.renderPass = renderPass;
+    fbInfo.attachmentCount = includeDepth ? 2 : 1;
+    fbInfo.pAttachments = attachments;
+    fbInfo.width = width;
+    fbInfo.height = height;
+    fbInfo.layers = 1;
+
+    uint32_t i;
+
+    framebuffers.clear();
+    framebuffers.resize(swapChainObj->scPublicVars.swapchainImageCount);
+    for (i = 0; i < swapChainObj->scPublicVars.swapchainImageCount; i++) {
+        attachments[0] = swapChainObj->scPublicVars.colorBuffer[i].view;
+        result = vkCreateFramebuffer(deviceObj->device, &fbInfo, nullptr, &framebuffers.at(i));
+        assert(result == VK_SUCCESS);
+    }
+}
+
+void VulkanRenderer::destroyFramebuffers()
+{
+    for (uint32_t i = 0; i < swapChainObj->scPublicVars.swapchainImageCount; i++) {
+        vkDestroyFramebuffer(deviceObj->device, framebuffers.at(i), nullptr);
+    }
+    framebuffers.clear();
+}
+
+void VulkanRenderer::destroyRenderpass()
+{
+    vkDestroyRenderPass(deviceObj->device, renderPass, nullptr);
+}
+
+void VulkanRenderer::destroyDrawableVertexBuffer()
+{
+    for (auto drawableObject : drawableList)
+    {
+        drawableObject->destroyVertexBuffer();
+    }
+}
+
+void VulkanRenderer::destroyDrawableCommandBuffer()
+{
+    for (auto drawableObject : drawableList)
+    {
+        drawableObject->destroyCommandBuffer();
+    }
+}
+
+void VulkanRenderer::destroyDrawableSynchronizationObjects()
+{
+//    for (auto drawableObject : drawableList)
+//    {
+//        drawableObject->destroySy
+//    }
+}
+
+void VulkanRenderer::destroyDepthBuffer()
+{
+    vkDestroyImageView(deviceObj->device, depth.view, nullptr);
+    vkDestroyImage(deviceObj->device, depth.image, nullptr);
+    vkFreeMemory(deviceObj->device, depth.mem, nullptr);
+}
+
+void VulkanRenderer::destroyCommandBuffer()
+{
+    VkCommandBuffer cmdBufs[] = { cmdDepthImage, cmdVertexBuffer };
+    vkFreeCommandBuffers(deviceObj->device, cmdPool,
+                         sizeof(cmdBufs)/sizeof(VkCommandBuffer), cmdBufs);
+}
+
+void VulkanRenderer::destroyCommandPool()
+{
+    VulkanDevice *deviceObj = appObj->deviceObj;
+    vkDestroyCommandPool(deviceObj->device, cmdPool, nullptr);
+}
+
+void VulkanRenderer::buildSwapChainAndDepthImage()
+{
+    deviceObj->getDeviceQueue();
+
+    swapChainObj->createSwapChain(cmdDepthImage);
+
+    createDepthImage();
+}
+
+void VulkanRenderer::createVertexBuffer()
+{
+    CommandBufferMgr::allocCommandBuffer(&deviceObj->device, cmdPool, &cmdVertexBuffer);
+    CommandBufferMgr::beginCommandBuffer(cmdVertexBuffer);
+
+    for (auto drawableObj : drawableList)
+    {
+        drawableObj->createVertexBuffer(triangleData, sizeof(triangleData),
+                                        sizeof(triangleData[0]), false);
+    }
+
+    CommandBufferMgr::endCommandBuffer(cmdVertexBuffer);
+    CommandBufferMgr::submitCommandBuffer(deviceObj->queue, &cmdVertexBuffer);
+}
+
+void VulkanRenderer::createShaders()
+{
+    void *vertShaderCode, *fragShaderCode;
+    size_t sizeVert, sizeFrag;
+
+    vertShaderCode = readFile("./../Draw-vert.spv", &sizeVert);
+    fragShaderCode = readFile("./../Draw-frag.spv", &sizeFrag);
+
+    shaderObj.buildShaderModuleWithSPV((uint32_t *)vertShaderCode, sizeVert,
+                                       (uint32_t *)fragShaderCode, sizeFrag);
+}
+
+void VulkanRenderer::createPipelineStateManagement()
+{
+    pipelineObj.createPipelineCache();
+
+    const bool depthPresent = true;
+    for (auto drawableObj : drawableList)
+    {
+        VkPipeline *pipeline = (VkPipeline *)malloc(sizeof(VkPipeline));
+        if (pipelineObj.createPipeline(drawableObj, pipeline, &shaderObj, depthPresent))
+        {
+            pipelineList.push_back(pipeline);
+            drawableObj->setPipeline(pipeline);
+        } else {
+            free(pipeline);
+            pipeline = nullptr;
+        }
+    }
+}
+
+void VulkanRenderer::setImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer &cmdBuf)
+{
+
+}
+
+
+
+
+
+
+
+
 
 
 
