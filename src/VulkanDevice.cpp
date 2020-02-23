@@ -1,10 +1,9 @@
 #include "VulkanDevice.h"
-#include "VulkanPhysicalDevice.h"
-#include <assert.h>
+#include "VulkanApplication.h"
 
-VulkanDevice::VulkanDevice(VkPhysicalDevice *physicalDevice)
+VulkanDevice::VulkanDevice()
 {
-    gpu = physicalDevice;
+
 }
 
 VulkanDevice::~VulkanDevice()
@@ -12,18 +11,13 @@ VulkanDevice::~VulkanDevice()
 
 }
 
-VkResult VulkanDevice::createDevice(std::vector<const char *> &layers,
-                                    std::vector<const char *> &extensions)
+VkResult VulkanDevice::createDevice(std::vector<const char *> layers, std::vector<const char *> extensions)
 {
-    layerExtension.appRequestedLayerNames = layers;
-    layerExtension .appRequestedExtensionNames = extensions;
-
-    // Create Device with avaiable queue information
-
-    VkResult result;
+    VkResult ret;
     float queuePriorities[1] = { 0.0f };
+
     VkDeviceQueueCreateInfo queueInfo = {};
-    queueInfo.queueFamilyIndex = graphicsQueueIndex;
+    queueInfo.queueFamilyIndex =graphicsQueueIndex;
     queueInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
     queueInfo.pNext = nullptr;
     queueInfo.queueCount = 1;
@@ -34,145 +28,68 @@ VkResult VulkanDevice::createDevice(std::vector<const char *> &layers,
     deviceInfo.pNext = nullptr;
     deviceInfo.queueCreateInfoCount = 1;
     deviceInfo.pQueueCreateInfos = &queueInfo;
-    deviceInfo.enabledLayerCount = 0;
-    deviceInfo.ppEnabledLayerNames = nullptr;
-    deviceInfo.enabledExtensionCount = (uint32_t)extensions.size();
-    deviceInfo.ppEnabledExtensionNames = extensions.size() ? extensions.data() : nullptr;
+    deviceInfo.enabledLayerCount = static_cast<uint32_t>(layers.size());
+    deviceInfo.ppEnabledLayerNames = layers.data();
+    deviceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
+    deviceInfo.ppEnabledExtensionNames = extensions.data();
     deviceInfo.pEnabledFeatures = nullptr;
 
-    result = vkCreateDevice(*gpu, &deviceInfo, nullptr, &device);
-    assert(result == VK_SUCCESS);
+    ret = vkCreateDevice(vkPhysicalDevice, &deviceInfo, nullptr, &vkDevice);
+    assert(ret == VK_SUCCESS);
 
-    return result;
+    vkGetDeviceQueue(vkDevice, graphicsQueueIndex, 0, &deviceQueue);
+    return ret;
 }
 
-bool VulkanDevice::memoryTypeFromProperties(uint32_t typeBits,
-                                            VkFlags requirements_mask,
-                                            uint32_t *typeIndex)
+VkResult VulkanDevice::enumeratePhysicalDevice(std::vector<VkPhysicalDevice> &gpuList)
 {
-    for (uint32_t i = 0; i < 32; i++)
+    uint32_t gpuCount;
+    VkResult ret;
+
+    ret = vkEnumeratePhysicalDevices(VulkanApplication::getInstance()->vulkanInstance.vkInstance, &gpuCount, nullptr);
+    assert(ret == VK_SUCCESS);
+    qDebug() << "gpu count: " << gpuCount;
+
+    gpuList.resize(gpuCount);
+    ret = vkEnumeratePhysicalDevices(VulkanApplication::getInstance()->vulkanInstance.vkInstance, &gpuCount, gpuList.data());
+    assert(ret == VK_SUCCESS);
+
+    return ret;
+}
+
+void VulkanDevice::setVkPhysicalDevice(VkPhysicalDevice &gpu)
+{
+    vkPhysicalDevice = gpu;
+
+    // Get queue info
+    uint32_t queueFamilyCount;
+    vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, nullptr);
+    qDebug() << "queueFamilyCount: " << queueFamilyCount;
+
+    vkQueueFamilyPropertiesList.resize(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, vkQueueFamilyPropertiesList.data());
+    for (uint32_t i = 0; i < vkQueueFamilyPropertiesList.size(); i++)
     {
-        if ((typeBits & 1) == 1) {
-            if ((memoryProps.memoryTypes[i].propertyFlags & requirements_mask) == requirements_mask) {
-                *typeIndex = i;
-                return true;
-            }
-        }
-        typeBits >>= 1;
-    }
-
-    return false;
-}
-
-void VulkanDevice::getPhysicalDeviceQueueAndProperties()
-{
-    vkGetPhysicalDeviceQueueFamilyProperties(*gpu, &queueFamilyCount, nullptr);
-
-    // Allocate space to accomodate Queue properties
-    queueFamilyProps.resize(queueFamilyCount);
-
-    // Get queue family properties
-    vkGetPhysicalDeviceQueueFamilyProperties(*gpu, &queueFamilyCount, queueFamilyProps.data());
-}
-
-uint32_t VulkanDevice::getGraphicsQueueHandle()
-{
-    // 1. Get the number of Queues supported by the Physical device
-    // 2. Get the properties each Queue type or Queue Family
-
-    bool found = false;
-    // 1. Iterate number of Queues supported by the Physical device
-    for (unsigned int i = 0; i < queueFamilyCount; i++)
-    {
-        // 2. Get the Graphics Queue type
-        //      The could be 4 Queue type or Queue families supported by physical device -
-        //      Graphics Queue      - VK_QUEUE_GRAPHICS_BIT
-        //      Compute Queue       - VK_QUEUE_COMPUTE_BIT
-        //      DMA/Transfer Queue  - VK_QUEUE_TRANSFER_BIT
-        //      Sparse memory       - VK_QUEUE_SPARSE_BINDING_BIT
-        if (queueFamilyProps[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)
+        qDebug() << "queue flags: " << vkQueueFamilyPropertiesList.at(i).queueFlags;
+        qDebug() << "queue count: " << vkQueueFamilyPropertiesList.at(i).queueCount;
+        if (vkQueueFamilyPropertiesList.at(i).queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
-            // 3. Get the handle/index ID of graphics queue family.
-            found = true;
+            qDebug() << "graphics queue";
             graphicsQueueIndex = i;
-            break;
+        }
+        else if (vkQueueFamilyPropertiesList.at(i).queueFlags & VK_QUEUE_COMPUTE_BIT)
+        {
+            qDebug() << "compute queue";
+        } else if (vkQueueFamilyPropertiesList.at(i).queueFlags & VK_QUEUE_TRANSFER_BIT)
+        {
+            qDebug() << "transfer queue";
         }
     }
-
-    assert(found);
-
-    return 0;
 }
 
-void VulkanDevice::destroyDevice()
+void VulkanDevice::getPhysicalDeviceProperties(VkPhysicalDevice *gpu)
 {
-    vkDestroyDevice(device, nullptr);
+    vkGetPhysicalDeviceProperties(*gpu, &physicalDeviceProperties.properties);
+    vkGetPhysicalDeviceMemoryProperties(*gpu, &physicalDeviceProperties.memoryProperties);
 }
-
-void VulkanDevice::getDeviceQueue()
-{
-    vkGetDeviceQueue(device, graphicsQueueWithPresentIndex, 0, &queue);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

@@ -1,31 +1,23 @@
 #ifndef VULKANLAYERSANDEXTENSIONS_H
 #define VULKANLAYERSANDEXTENSIONS_H
 
-#include <vulkan/vulkan.h>
-#include <vector>
+#include "headers.h"
 
-struct LayerProperties {
+struct  LayerProperties {
     VkLayerProperties properties;
     std::vector<VkExtensionProperties> extensions;
 };
 
-class VulkanLayerAndExtension
+class VulkanLayersAndExtensions
 {
 public:
-    VulkanLayerAndExtension();
-    ~VulkanLayerAndExtension() {}
+    VulkanLayersAndExtensions();
+    ~VulkanLayersAndExtensions();
 
     VkResult getInstanceLayerProperties();
+    VkResult getExtensionProperties(LayerProperties &layerProps);
 
-    VkResult getExtensionProperties(LayerProperties &layerProps,
-                                    VkPhysicalDevice *gpu = nullptr);
-
-    VkResult getDeviceExtensionProperties(VkPhysicalDevice *gpu);
-
-    VkBool32 areLayersSupported(std::vector<const char *> &layerNames);
-//    VkResult createDebugReportCallback();
-//    void destroyDebugReportCallback();
-
+    VkResult createDebugReportCallback();
 
     static VKAPI_ATTR VkBool32 VKAPI_CALL debugFunction(VkFlags msgFlags,
                                                         VkDebugReportObjectTypeEXT objType,
@@ -37,47 +29,18 @@ public:
                                                         void *userData);
 
 public:
+    std::vector<const char *> instanceLayers;
+    std::vector<const char *> instanceExtensions;
     std::vector<const char *> appRequestedLayerNames;
-
-    std::vector<const char *> appRequestedExtensionNames;
-
+    std::vector<const char *> appRequestedExtentionNames;
     std::vector<LayerProperties> layerPropertyList;
 
-private:
-    PFN_vkCreateDebugReportCallbackEXT dbgCreateDebugReportCallback;
-    PFN_vkDestroyDebugReportCallbackEXT dbgDestroyDebugReportCallback;
-    VkDebugReportCallbackEXT debugReportCallback;
-
     VkDebugReportCallbackCreateInfoEXT dbgReportCreateInfo = {};
+
+private:
+    PFN_vkCreateDebugReportCallbackEXT vkCreateDebugReportCallback;
+    PFN_vkDestroyDebugReportCallbackEXT vkDestroyDebugReportCallback;
+    VkDebugReportCallbackEXT vkDebugReportCallback;
 };
 
-
-
 #endif // VULKANLAYERSANDEXTENSIONS_H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

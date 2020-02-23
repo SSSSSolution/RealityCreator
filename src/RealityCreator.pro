@@ -25,43 +25,17 @@ LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
 }
 
 SOURCES += \
-    MainWindow.cpp \
     VulkanApplication.cpp \
-    VulkanBuffer.cpp \
-    VulkanCommandBuffer.cpp \
-    VulkanCommandBufferManager.cpp \
-    VulkanCommandPool.cpp \
     VulkanDevice.cpp \
-    VulkanDrawable.cpp \
     VulkanInstance.cpp \
-    VulkanLayerAndExtension.cpp \
-    VulkanPhysicalDevice.cpp \
-    VulkanPipeline.cpp \
-    VulkanRenderer.cpp \
-    VulkanShader.cpp \
-    VulkanSwapChain.cpp \
-    VulkanWindow.cpp \
-    Wrappers.cpp \
+    VulkanLayersAndExtensions.cpp \
     main.cpp
 
 HEADERS += \
-    MainWindow.h \
     VulkanApplication.h \
-    VulkanBuffer.h \
-    VulkanCommandBuffer.h \
-    VulkanCommandBufferManager.h \
-    VulkanCommandPool.h \
     VulkanDevice.h \
-    VulkanDrawable.h \
     VulkanInstance.h \
-    VulkanLayerAndExtension.h \
-    VulkanPhysicalDevice.h \
-    VulkanPipeline.h \
-    VulkanRenderer.h \
-    VulkanShader.h \
-    VulkanSwapChain.h \
-    VulkanWindow.h \
-    Wrappers.h \
+    VulkanLayersAndExtensions.h \
     headers.h \
     meshdata.h
 

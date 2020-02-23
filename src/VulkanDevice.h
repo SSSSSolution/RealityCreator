@@ -2,46 +2,39 @@
 #define VULKANDEVICE_H
 
 #include "headers.h"
-#include <vector>
-#include "VulkanLayerAndExtension.h"
 
-class VulkanDevice {
+struct PhysicalDeviceProperties
+{
+    VkPhysicalDeviceProperties properties;
+    VkPhysicalDeviceMemoryProperties memoryProperties;
+};
+
+class VulkanDevice
+{
 public:
-    VulkanDevice(VkPhysicalDevice *gpu);
+    VulkanDevice();
     ~VulkanDevice();
 
-    VkResult createDevice(std::vector<const char *>& layers,
-                          std::vector<const char *>& extensions);
-    void destroyDevice();
+    // 枚举gpu
+    static VkResult enumeratePhysicalDevice(std::vector<VkPhysicalDevice> &gpuList);
+    // 设置gpu
+    void setVkPhysicalDevice(VkPhysicalDevice &gpu);
+    VkResult createDevice(std::vector<const char *> layers, std::vector<const char *> extensions);
 
-    bool memoryTypeFromProperties(uint32_t typeBits,
-                                  VkFlags requirements_mask,
-                                  uint32_t *typeIndex);
-
-    // Get the avaiable queues exposed by the physical devices
-    void getPhysicalDeviceQueueAndProperties();
-
-    // Query physical device to retrive queue properties
-    uint32_t getGraphicsQueueHandle();
-
-    // Queue related member functions.
-    void getDeviceQueue();
 
 public:
-    VkDevice device;
-    VkPhysicalDevice *gpu;
-    VkPhysicalDeviceProperties gpuProps;
-    VkPhysicalDeviceMemoryProperties memoryProps;
+    VkPhysicalDevice vkPhysicalDevice;
+    VkDevice vkDevice;
+
+    PhysicalDeviceProperties physicalDeviceProperties;
 
     // Queue
-    VkQueue queue;
-    std::vector<VkQueueFamilyProperties> queueFamilyProps;
+    std::vector<VkQueueFamilyProperties> vkQueueFamilyPropertiesList;
     uint32_t graphicsQueueIndex;
-    uint32_t graphicsQueueWithPresentIndex;
-    uint32_t queueFamilyCount;
+    VkQueue deviceQueue;
 
-    // Layer and extensions
-    VulkanLayerAndExtension layerExtension;
+private:
+    void getPhysicalDeviceProperties(VkPhysicalDevice *gpu);
 };
 
 #endif // VULKANDEVICE_H

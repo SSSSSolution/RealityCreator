@@ -27,4 +27,6 @@
 /*********** VULKAN HEADER FILES **********/
 #include <vulkan/vulkan.h>
 
+#include <QDebug>
+
 #endif // HEADERS_H
