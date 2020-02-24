@@ -20,7 +20,7 @@ private:
     PFN_vkGetPhysicalDeviceSurfacePresentModesKHR vkGetPhysicalDeviceSurfacePresentModesKHR;
     PFN_vkDestroySurfaceKHR vkDestroySurfaceKHR;
 
-    PFN_vkCreateSwapchainKHR vkVreateSwapchainKHR;
+    PFN_vkCreateSwapchainKHR vkCreateSwapchainKHR;
     PFN_vkDestroySwapchainKHR vkDestroySwapchainKHR;
     PFN_vkGetSwapchainImagesKHR vkGetSwapchainImagesKHR;
 

@@ -23,11 +23,15 @@ void VulkanSwapChain::initialize()
 void VulkanSwapChain::querySwapChainExtensions()
 {
     VkInstance instance = VulkanApplication::getInstance()->vulkanInstance.vkInstance;
-//    VkDevice device = VulkanApplication::getInstance()
+    VkDevice device = VulkanApplication::getInstance()->vulkanDevice.vkDevice;
 
     GET_INSTANCE_FUNC_PTR(instance, vkGetPhysicalDeviceSurfaceSupportKHR);
     GET_INSTANCE_FUNC_PTR(instance, vkGetPhysicalDeviceSurfaceCapabilitiesKHR);
     GET_INSTANCE_FUNC_PTR(instance, vkGetPhysicalDeviceSurfaceFormatsKHR);
     GET_INSTANCE_FUNC_PTR(instance, vkGetPhysicalDeviceSurfacePresentModesKHR);
     GET_INSTANCE_FUNC_PTR(instance, vkDestroySurfaceKHR);
+
+    GET_DEVICE_FUNC_PTR(device, vkCreateSwapchainKHR);
+//    GET_DEVICE_FUNC_PTR(device, vkDestroySwapchainKHR);
+//    GET_DEVICE_FUNC_PTR(device, vkGetSwapchainImagesKHR);
 }
