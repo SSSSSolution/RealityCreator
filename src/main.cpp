@@ -11,7 +11,7 @@ static std::vector<const char *> layers = {
 
 static std::vector<const char *> extensions = {
     VK_KHR_SURFACE_EXTENSION_NAME,
-#ifdef _win32
+#ifdef _WIN32
     VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
 #elif __linux__
     VK_KHR_XCB_SURFACE_EXTENSION_NAME,
@@ -23,6 +23,7 @@ static std::vector<const char *> deviceLayers = {
 };
 
 static std::vector<const char *> deviceExtensions = {
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
 int main(int argc, char *argv[])
@@ -38,5 +39,5 @@ int main(int argc, char *argv[])
     VulkanApplication::getInstance()->createVulkanDevice(deviceLayers, deviceExtensions);
     VulkanApplication::getInstance()->createVulkanRenderer();
 
-    while(1) {}
+//    while(1) { Sleep(1000); }
 }

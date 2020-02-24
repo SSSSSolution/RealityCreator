@@ -23,6 +23,7 @@ win32 {
 #如何配置安装vulkan请参考　https://vulkan.lunarg.com/doc/sdk/latest/windows/getting_started.html
 INCLUDEPATH += C:\VulkanSDK\1.1.130.0\Include
 LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
+LIBS += -lgdi32 -lkernel32 -luser32
 }
 
 SOURCES += \

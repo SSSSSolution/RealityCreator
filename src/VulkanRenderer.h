@@ -15,14 +15,19 @@ public:
 //    bool prepare();
 //    bool render();
 
+#ifdef _WIN32
+    static LRESULT CALLBACK WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+#endif
+
 private:
     void createPresentationWindow(const int &windowWidth = 800, const int &windowHeight = 600);
 
-private:
+public:
 #ifdef _WIN32
 #define APP_NAME_STR_LEN 80
-    HINSTANCE connectin;
-    char name[APP_NAME_STR_LEN];
+    HINSTANCE connection;
+//    wchar_t name[APP_NAME_STR_LEN];
+    LPCWSTR name;
     HWND window;
 #elif __linux__
     xcb_connection_t *connection;

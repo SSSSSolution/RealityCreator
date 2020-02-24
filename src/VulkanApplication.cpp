@@ -38,7 +38,6 @@ VkResult VulkanApplication::createVulkanDevice(std::vector<const char *> layers,
     std::vector<VkPhysicalDevice> gpuList;
     VulkanDevice::enumeratePhysicalDevice(gpuList);
 
-    VulkanDevice vulkanDevice;
     vulkanDevice.setVkPhysicalDevice(gpuList.at(0));
     return vulkanDevice.createDevice(layers, extensions);
 }

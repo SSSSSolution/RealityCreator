@@ -1,9 +1,10 @@
 #include "VulkanRenderer.h"
 #include "VulkanSwapChain.h"
+#include "VulkanApplication.h"
 
 VulkanRenderer::VulkanRenderer()
 {
-    vulkanSwapChain = new VulkanSwapChain();
+    vulkanSwapChain = new VulkanSwapChain(this);
 }
 
 void VulkanRenderer::initialize()
@@ -13,7 +14,86 @@ void VulkanRenderer::initialize()
 
 }
 
+#ifdef _WIN32
+// MS-Windows event handling function:
+LRESULT CALLBACK VulkanRenderer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+{
+    qDebug() << __func__;
+//    switch (uMsg)
+//    {
+//    case WM_CLOSE:
+//        PostQuitMessage(0);
+//        break;
+//    case WM_PAINT:
+//        for each (VulkanDrawable* drawableObj in appObj->rendererObj->drawableList)
+//        {
+//            drawableObj->render();
+//        }
 
+//        return 0;
+//    default:
+//        break;
+//    }
+    return (DefWindowProc(hWnd, uMsg, wParam, lParam));
+}
+
+void VulkanRenderer::createPresentationWindow(const int& windowWidth, const int& windowHeight)
+{
+    assert(windowWidth > 0 || windowHeight > 0);
+
+    WNDCLASSEX  winInfo;
+
+    name = L"Drawing Hello World";
+    memset(&winInfo, 0, sizeof(WNDCLASSEX));
+    // Initialize the window class structure:
+    winInfo.cbSize			= sizeof(WNDCLASSEX);
+    winInfo.style			= CS_HREDRAW | CS_VREDRAW;
+    winInfo.lpfnWndProc		= WndProc;
+    winInfo.cbClsExtra		= 0;
+    winInfo.cbWndExtra		= 0;
+    winInfo.hInstance		= connection; // hInstance
+    winInfo.hIcon			= LoadIcon(nullptr, IDI_APPLICATION);
+    winInfo.hCursor			= LoadCursor(nullptr, IDC_ARROW);
+    winInfo.hbrBackground	= (HBRUSH)GetStockObject(WHITE_BRUSH);
+    winInfo.lpszMenuName	= nullptr;
+    winInfo.lpszClassName	= name;
+    winInfo.hIconSm			= LoadIcon(nullptr, IDI_WINLOGO);
+
+    // Register window class:
+    if (!RegisterClassEx(&winInfo)) {
+        // It didn't work, so try to give a useful error:
+        printf("Unexpected error trying to start the application!\n");
+        fflush(stdout);
+        exit(1);
+    }
+
+    // Create window with the registered class:
+    RECT wr = { 0, 0, windowWidth, windowHeight };
+    AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
+    window = CreateWindowEx(0,
+                            name,					// class name
+                            name,					// app name
+                            WS_OVERLAPPEDWINDOW |	// window style
+                            WS_VISIBLE |
+                            WS_SYSMENU,
+                            100, 100,				// x/y coords
+                            wr.right - wr.left,     // width
+                            wr.bottom - wr.top,     // height
+                            nullptr,					// handle to parent
+                            nullptr,					// handle to menu
+                            connection,				// hInstance
+                            nullptr);					// no extra parameters
+
+    if (!window) {
+        // It didn't work, so try to give a useful error:
+        printf("Cannot create a window in which to draw!\n");
+        fflush(stdout);
+        exit(1);
+    }
+
+    SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR)(VulkanApplication::getInstance()));
+}
+#elif __linux__
 /* Magic code to me until now. */
 void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int &windowHeight)
 {
@@ -75,7 +155,7 @@ void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int 
             break;
     }
 }
-
+#endif // _WIN32
 
 
 
