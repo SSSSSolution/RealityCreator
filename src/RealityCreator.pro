@@ -16,6 +16,7 @@ unix {
 INCLUDEPATH += /home/huangwei/study/Mirage/3thparty/1.1.121.1/x86_64/include
 # vulkan库文件所在目录
 LIBS += -L/home/huangwei/study/Mirage/3thparty/1.1.121.1/x86_64/lib -lvulkan
+LIBS += -lxcb
 }
 # windows 环境:
 win32 {
@@ -25,17 +26,23 @@ LIBS += -LC:\VulkanSDK\1.1.130.0\Lib -lvulkan-1
 }
 
 SOURCES += \
+    CommandBufferMgr.cpp \
     VulkanApplication.cpp \
     VulkanDevice.cpp \
     VulkanInstance.cpp \
     VulkanLayersAndExtensions.cpp \
+    VulkanRenderer.cpp \
+    VulkanSwapChain.cpp \
     main.cpp
 
 HEADERS += \
+    CommandBufferMgr.h \
     VulkanApplication.h \
     VulkanDevice.h \
     VulkanInstance.h \
     VulkanLayersAndExtensions.h \
+    VulkanRenderer.h \
+    VulkanSwapChain.h \
     headers.h \
     meshdata.h
 

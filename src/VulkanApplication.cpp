@@ -1,4 +1,5 @@
 #include "VulkanApplication.h"
+#include "VulkanRenderer.h"
 
 std::unique_ptr<VulkanApplication> VulkanApplication::instance;
 std::once_flag VulkanApplication::onlyOnce;
@@ -29,4 +30,21 @@ VkResult VulkanApplication::createVulkanInstance(std::vector<const char *> layer
 VkResult VulkanApplication::createDebugReportCallback()
 {
     return vulkanInstance.layerExtension.createDebugReportCallback();
+}
+
+VkResult VulkanApplication::createVulkanDevice(std::vector<const char *> layers,
+                                               std::vector<const char *> extensions)
+{
+    std::vector<VkPhysicalDevice> gpuList;
+    VulkanDevice::enumeratePhysicalDevice(gpuList);
+
+    VulkanDevice vulkanDevice;
+    vulkanDevice.setVkPhysicalDevice(gpuList.at(0));
+    return vulkanDevice.createDevice(layers, extensions);
+}
+
+void VulkanApplication::createVulkanRenderer()
+{
+    vulkanRenderer = new VulkanRenderer();
+    vulkanRenderer->initialize();
 }

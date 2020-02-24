@@ -11,7 +11,11 @@ static std::vector<const char *> layers = {
 
 static std::vector<const char *> extensions = {
     VK_KHR_SURFACE_EXTENSION_NAME,
+#ifdef _win32
     VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
+#elif __linux__
+    VK_KHR_XCB_SURFACE_EXTENSION_NAME,
+#endif
     VK_EXT_DEBUG_REPORT_EXTENSION_NAME
 };
 
@@ -31,11 +35,8 @@ int main(int argc, char *argv[])
 
     VulkanApplication::getInstance()->createVulkanInstance(layers, extensions, nullptr);
     assert(VulkanApplication::getInstance()->createDebugReportCallback() == VK_SUCCESS);
+    VulkanApplication::getInstance()->createVulkanDevice(deviceLayers, deviceExtensions);
+    VulkanApplication::getInstance()->createVulkanRenderer();
 
-    std::vector<VkPhysicalDevice> gpuList;
-    VulkanDevice::enumeratePhysicalDevice(gpuList);
-
-    VulkanDevice vulkanDevice;
-    vulkanDevice.setVkPhysicalDevice(gpuList.at(0));
-    vulkanDevice.createDevice(deviceLayers, deviceExtensions);
+    while(1) {}
 }
