@@ -36,6 +36,8 @@ public:
     xcb_intern_atom_reply_t *reply;
 #endif
 
+    uint32_t width, height;
+
 private:
     VulkanSwapChain *vulkanSwapChain;
 };

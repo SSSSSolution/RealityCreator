@@ -39,5 +39,5 @@ int main(int argc, char *argv[])
     VulkanApplication::getInstance()->createVulkanDevice(deviceLayers, deviceExtensions);
     VulkanApplication::getInstance()->createVulkanRenderer();
 
-//    while(1) { Sleep(1000); }
+    while(1) { ; }
 }

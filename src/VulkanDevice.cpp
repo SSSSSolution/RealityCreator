@@ -62,7 +62,6 @@ void VulkanDevice::setVkPhysicalDevice(VkPhysicalDevice &gpu)
     vkPhysicalDevice = gpu;
 
     // Get queue info
-    uint32_t queueFamilyCount;
     vkGetPhysicalDeviceQueueFamilyProperties(vkPhysicalDevice, &queueFamilyCount, nullptr);
     qDebug() << "queueFamilyCount: " << queueFamilyCount;
 

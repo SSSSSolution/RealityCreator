@@ -40,6 +40,8 @@ LRESULT CALLBACK VulkanRenderer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LP
 void VulkanRenderer::createPresentationWindow(const int& windowWidth, const int& windowHeight)
 {
     assert(windowWidth > 0 || windowHeight > 0);
+    width = windowWidth;
+    height = windowHeight;
 
     WNDCLASSEX  winInfo;
 
@@ -68,7 +70,7 @@ void VulkanRenderer::createPresentationWindow(const int& windowWidth, const int&
     }
 
     // Create window with the registered class:
-    RECT wr = { 0, 0, windowWidth, windowHeight };
+    RECT wr = { 0, 0, width, height };
     AdjustWindowRect(&wr, WS_OVERLAPPEDWINDOW, FALSE);
     window = CreateWindowEx(0,
                             name,					// class name
@@ -100,6 +102,8 @@ void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int 
     qDebug() << __func__;
     assert(windowWidth > 0);
     assert(windowHeight > 0);
+    width = windowWidth;
+    height = windowHeight;
 
     const xcb_setup_t *setup;
     xcb_screen_iterator_t iter;
@@ -128,7 +132,7 @@ void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int 
     value_list[0] = screen->black_pixel;
     value_list[1] = XCB_EVENT_MASK_KEY_RELEASE | XCB_EVENT_MASK_EXPOSURE;
 
-    xcb_create_window(connection, XCB_COPY_FROM_PARENT, window, screen->root, 0, 0, windowWidth, windowHeight, 0,
+    xcb_create_window(connection, XCB_COPY_FROM_PARENT, window, screen->root, 0, 0, width, height, 0,
                       XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, value_mask, value_list);
 
     xcb_intern_atom_cookie_t cookie = xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS");

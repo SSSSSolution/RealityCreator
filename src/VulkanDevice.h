@@ -31,7 +31,9 @@ public:
     // Queue
     std::vector<VkQueueFamilyProperties> vkQueueFamilyPropertiesList;
     uint32_t graphicsQueueIndex;
+    uint32_t graphicsQueueWithPresentIndex;
     VkQueue deviceQueue;
+    uint32_t queueFamilyCount;
 
 private:
     void getPhysicalDeviceProperties(VkPhysicalDevice *gpu);

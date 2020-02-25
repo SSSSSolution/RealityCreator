@@ -10,10 +10,15 @@ class VulkanSwapChain
 public:
     VulkanSwapChain(VulkanRenderer *vulkanRenderer);
     void initialize();
+    void createSwapChain(const VkCommandBuffer &cmd);
 
 private:
     void querySwapChainExtensions();
     void createSurface();
+    uint32_t getGraphicsQueueWithPresentationSupport();
+    void getSupportedFormats();
+    void getSurfaceCapabilitiesAndPresentMode();
+    void managePresentMode();
 
 public:
     PFN_vkQueuePresentKHR vkQueuePresentKHR;
@@ -34,8 +39,16 @@ private:
     VulkanApplication *vulkanApplication;
     VulkanRenderer *vulkanRenderer;
 
+public:
+    VkSurfaceFormatKHR surfaceFormat;
 private:
     VkSurfaceKHR surface;
+    std::vector<VkSurfaceFormatKHR> surfaceFormatList;
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    uint32_t presentModeCount;
+    std::vector<VkPresentModeKHR> presentModeList;
+    VkPresentModeKHR swapchainPresentMode;
+    VkExtent2D swapChainExtent;
 
 };
 
