@@ -5,6 +5,11 @@
 #include "VulkanApplication.h"
 #include "VulkanRenderer.h"
 
+struct SwapChainBuffer {
+    VkImage image;
+    VkImageView view;
+};
+
 class VulkanSwapChain
 {
 public:
@@ -19,6 +24,8 @@ private:
     void getSupportedFormats();
     void getSurfaceCapabilitiesAndPresentMode();
     void managePresentMode();
+    void createSwapChainColorImages();
+    void createColorImageView(const VkCommandBuffer& cmd);
 
 public:
     PFN_vkQueuePresentKHR vkQueuePresentKHR;
@@ -40,7 +47,12 @@ private:
     VulkanRenderer *vulkanRenderer;
 
 public:
+    VkSwapchainKHR swapChain;
     VkSurfaceFormatKHR surfaceFormat;
+    VkFormat format;
+    std::vector<SwapChainBuffer> colorBufferList;
+    uint32_t currentColorBuffer;
+
 private:
     VkSurfaceKHR surface;
     std::vector<VkSurfaceFormatKHR> surfaceFormatList;
@@ -49,7 +61,10 @@ private:
     std::vector<VkPresentModeKHR> presentModeList;
     VkPresentModeKHR swapchainPresentMode;
     VkExtent2D swapChainExtent;
-
+    uint32_t desiredNumberOfSwapChainImages;
+    VkSurfaceTransformFlagBitsKHR preTransform;
+    uint32_t swapChainImagesCount;
+    std::vector<VkImage> swapChainImages;
 };
 
 #endif // VULKANSWAPCHAIN_H
