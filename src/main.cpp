@@ -5,7 +5,7 @@
 #include "VulkanDevice.h"
 
 static std::vector<const char *> layers = {
-    "VK_LAYER_LUNARG_api_dump",
+//    "VK_LAYER_LUNARG_api_dump",
     "VK_LAYER_LUNARG_standard_validation"
 };
 

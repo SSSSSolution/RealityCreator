@@ -115,7 +115,7 @@ uint32_t VulkanSwapChain::getGraphicsQueueWithPresentationSupport()
         }
     }
 
-    // If don't find a queue that supports both graphics and presetn, then
+    // If don't find a queue that supports both graphics and present, then
     // find a separate present queue.
     if (presentQueueNodeIndex == UINT32_MAX) {
         for (uint32_t i = 0; i < queueCount; ++i) {
@@ -134,6 +134,7 @@ uint32_t VulkanSwapChain::getGraphicsQueueWithPresentationSupport()
     return graphicsQueueNodeIndex;
 }
 
+// 找到surface支持的format
 void VulkanSwapChain::getSupportedFormats()
 {
     VkPhysicalDevice gpu = vulkanApplication->vulkanDevice.vkPhysicalDevice;
@@ -157,6 +158,7 @@ void VulkanSwapChain::getSupportedFormats()
     }
 }
 
+// Quering surface's capabilities and presentMode.
 void VulkanSwapChain::getSurfaceCapabilitiesAndPresentMode()
 {
     VkResult ret;
@@ -173,6 +175,7 @@ void VulkanSwapChain::getSurfaceCapabilitiesAndPresentMode()
     ret = vkGetPhysicalDeviceSurfacePresentModesKHR(gpu, surface, &presentModeCount, presentModeList.data());
     assert(ret == VK_SUCCESS);
 
+    // If surface's capabilities's witdh is undefined, then set it to vulkanRenderer's width
     if (surfaceCapabilities.currentExtent.width == (uint32_t)-1) {
         swapChainExtent.width = vulkanRenderer->width;
         swapChainExtent.height = vulkanRenderer->height;
