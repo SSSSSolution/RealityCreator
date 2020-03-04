@@ -32,7 +32,6 @@ private:
 
     void setImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
                         VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer &cmdBuf);
-//    void createDepthImage();
 
 public:
 #ifdef _WIN32

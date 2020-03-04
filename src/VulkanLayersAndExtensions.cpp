@@ -92,15 +92,15 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanLayersAndExtensions::debugFunction(VkFlags 
                                                                         void *userData)
 {
     if (msgFlags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
-        std::cout << "[VK_DEBUG_REPORT] ERROR: [" << layerPrefix << "] Code" << msgCode << ":" << msg << std::endl;
+        std::cout << "[VK_DEBUG_REPORT] ERROR: ["       << layerPrefix << "] Code" << msgCode << ":" << msg << std::endl;
     } else if (msgFlags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
-        std::cout << "[VK_DEBUG_REPORT] WARNING: [" << layerPrefix << "] Code" << msgCode << ":" << msg<< std::endl;
+        std::cout << "[VK_DEBUG_REPORT] WARNING: ["     << layerPrefix << "] Code" << msgCode << ":" << msg << std::endl;
     } else if (msgFlags & VK_DEBUG_REPORT_INFORMATION_BIT_EXT) {
-        std::cout << "[VK_DEBUG_REPORT] INFORMATION: [" << layerPrefix << "] Code" << msgCode << ":" << msg<< std::endl;
+        std::cout << "[VK_DEBUG_REPORT] INFORMATION: [" << layerPrefix << "] Code" << msgCode << ":" << msg << std::endl;
     } else if (msgFlags & VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT) {
-        std::cout << "[VK_DEBUG_REPORT] PERFORMANCE: [" << layerPrefix << "] Code" << msgCode << ":" << msg<< std::endl;
+        std::cout << "[VK_DEBUG_REPORT] PERFORMANCE: [" << layerPrefix << "] Code" << msgCode << ":" << msg << std::endl;
     } else if (msgFlags & VK_DEBUG_REPORT_DEBUG_BIT_EXT) {
-        std::cout << "[VK_DEBUG_REPORT] DEBUG: [" << layerPrefix << "] Code" << msgCode << ":" << msg << std::endl;
+        std::cout << "[VK_DEBUG_REPORT] DEBUG: ["       << layerPrefix << "] Code" << msgCode << ":" << msg << std::endl;
     } else {
         return VK_FALSE;
     }
@@ -108,54 +108,3 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanLayersAndExtensions::debugFunction(VkFlags 
     fflush(stdout);
     return VK_TRUE;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

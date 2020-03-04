@@ -23,8 +23,6 @@ void VulkanRenderer::initialize()
 
     // Let's create the swap chain color images and depth image
     buildSwapChainAndDepthImage();
-
-
 }
 
 #ifdef _WIN32
@@ -214,8 +212,10 @@ void VulkanRenderer::createDepthImage()
     vkGetPhysicalDeviceFormatProperties(vulkanDevice->vkPhysicalDevice, depthFormat, &props);
     if (props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
         imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+        qDebug() << "tiling optimal";
     } else if (props.linearTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) {
         imageInfo.tiling = VK_IMAGE_TILING_LINEAR;
+        qDebug() << "tiling linear";
     } else {
         qDebug() << "UnSupported Depth Format, try other Depth formats. \n";
     }
@@ -243,7 +243,7 @@ void VulkanRenderer::createDepthImage()
     // Get the image memory requirements
     VkMemoryRequirements memRqrmnt;
     vkGetImageMemoryRequirements(vulkanDevice->vkDevice, Depth.image, &memRqrmnt);
-
+    qDebug() << "memRqrmnt: size: " << memRqrmnt.size << " aligment: " << memRqrmnt.alignment <<" type bits: " << memRqrmnt.memoryTypeBits;
 
     VkMemoryAllocateInfo memAlloc = {};
     memAlloc.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -251,7 +251,6 @@ void VulkanRenderer::createDepthImage()
     memAlloc.allocationSize = 0;
     memAlloc.memoryTypeIndex = 0;
     memAlloc.allocationSize = memRqrmnt.size;
-    qDebug() << "size: " << memRqrmnt.size;
 
     // Determine the type of memory required with the help of memory properties
     pass = vulkanDevice->memoryTypeFromProperties(memRqrmnt.memoryTypeBits, 0, &memAlloc.memoryTypeIndex);
@@ -267,6 +266,7 @@ void VulkanRenderer::createDepthImage()
     VkImageViewCreateInfo imgViewInfo = {};
     imgViewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     imgViewInfo.pNext = nullptr;
+    imgViewInfo.image = VK_NULL_HANDLE;
     imgViewInfo.format = depthFormat;
     imgViewInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY };
     imgViewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -307,6 +307,10 @@ void VulkanRenderer::setImageLayout(VkImage image, VkImageAspectFlags aspectMask
 
     assert(vulkanDevice->queue != VK_NULL_HANDLE);
 
+    /* The image memory barrier is represented by the VkImageMemoryBarrier instance
+     * and is applicable to the different memory access types via a specific image
+     *  sub-resource range of the specified image object.
+     */
     VkImageMemoryBarrier imgMemoryBarrier = {};
     imgMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     imgMemoryBarrier.pNext = nullptr;
@@ -348,37 +352,16 @@ void VulkanRenderer::setImageLayout(VkImage image, VkImageAspectFlags aspectMask
     case VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL:
         imgMemoryBarrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         break;
+    default:
+        break;
     }
+    qDebug() << "imgMemoryBarrier.dstMask:" << imgMemoryBarrier.dstAccessMask;
 
     VkPipelineStageFlags srcStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
     VkPipelineStageFlags destStages = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
     vkCmdPipelineBarrier(cmdBuf, srcStages, destStages, 0, 0, nullptr, 0, nullptr, 1, &imgMemoryBarrier);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
