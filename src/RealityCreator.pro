@@ -30,6 +30,7 @@ SOURCES += \
     CommandBufferMgr.cpp \
     VulkanApplication.cpp \
     VulkanDevice.cpp \
+    VulkanDrawable.cpp \
     VulkanInstance.cpp \
     VulkanLayersAndExtensions.cpp \
     VulkanRenderer.cpp \
@@ -40,6 +41,7 @@ HEADERS += \
     CommandBufferMgr.h \
     VulkanApplication.h \
     VulkanDevice.h \
+    VulkanDrawable.h \
     VulkanInstance.h \
     VulkanLayersAndExtensions.h \
     VulkanRenderer.h \

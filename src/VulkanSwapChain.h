@@ -52,6 +52,7 @@ public:
     VkFormat format;
     std::vector<SwapChainBuffer> colorBufferList;
     uint32_t currentColorBuffer;
+    uint32_t swapChainImagesCount;
 
 private:
     VkSurfaceKHR surface;
@@ -63,7 +64,7 @@ private:
     VkExtent2D swapChainExtent;
     uint32_t desiredNumberOfSwapChainImages;
     VkSurfaceTransformFlagBitsKHR preTransform;
-    uint32_t swapChainImagesCount;
+
     std::vector<VkImage> swapChainImages;
 };
 

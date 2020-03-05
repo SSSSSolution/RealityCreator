@@ -6,6 +6,7 @@
 class VulkanSwapChain;
 class VulkanApplication;
 class VulkanDevice;
+class VulkanDrawable;
 
 #define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
 class VulkanRenderer
@@ -33,6 +34,10 @@ private:
     void setImageLayout(VkImage image, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout,
                         VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer &cmdBuf);
 
+    void createVertexBuffer();
+    void createRenderPass(bool includeDepth, bool clear = true);
+    void createFrameBuffer(bool includeDepth);
+
 public:
 #ifdef _WIN32
 #define APP_NAME_STR_LEN 80
@@ -55,15 +60,20 @@ public:
     } Depth;
 
     uint32_t width, height;
+    VulkanDevice *vulkanDevice;
+    VulkanSwapChain *vulkanSwapChain;
+    VkCommandPool cmdPool;
+
+    VkCommandBuffer cmdVertexBuffer;
+    VkRenderPass renderPass;
+    std::vector<VkFramebuffer> framebuffers;
 
 private:
     VulkanApplication *vulkanApplication;
-    VulkanDevice *vulkanDevice;
-    VulkanSwapChain *vulkanSwapChain;
 
     VkCommandBuffer cmdDepthImage;
-    VkCommandPool cmdPool;
 
+    std::vector<VulkanDrawable*> drawableList;
 };
 
 #endif // VULKANRENDERER_H
