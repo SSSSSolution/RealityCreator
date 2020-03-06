@@ -13,17 +13,20 @@ public:
     static VulkanApplication* getInstance();
     ~VulkanApplication();
 
-    VkResult createVulkanInstance(std::vector<const char *>layers,
-                                  std::vector<const char *>extensions,
-                                  const char *appName);
-    VkResult createDebugReportCallback();
-    VkResult createVulkanDevice(std::vector<const char *> layers,
-                                std::vector<const char *> extensions);
+    void initialize();
+    void prepare();
+    void render();
 
-    void createVulkanRenderer();
 
 private:
     VulkanApplication();
+
+    VkResult createVulkanInstance(std::vector<const char *>layers,
+                                  std::vector<const char *>extensions,
+                                  const char *appName);
+    VkResult createVulkanDevice(std::vector<const char *> layers,
+                                std::vector<const char *> extensions);
+    VkResult createVulkanRenderer();
 
 public:
     VulkanInstance vulkanInstance;
@@ -33,6 +36,8 @@ public:
 private:
     static std::unique_ptr<VulkanApplication> instance;
     static std::once_flag onlyOnce;
+
+    std::vector<VkCommandBuffer> drawCmdList;
 };
 
 #endif // VULKANAPPLICATION_H

@@ -8,6 +8,21 @@
 VulkanDrawable::VulkanDrawable(VulkanRenderer *parent)
 {
     vulkanRenderer = parent;
+
+    VkSemaphoreCreateInfo presentCompleteSemaphoreCreateInfo;
+    presentCompleteSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    presentCompleteSemaphoreCreateInfo.pNext = nullptr;
+    presentCompleteSemaphoreCreateInfo.flags = 0;
+
+    VkSemaphoreCreateInfo drawingSemaphoreCreateInfo;
+    drawingSemaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+    drawingSemaphoreCreateInfo.pNext = nullptr;
+    drawingSemaphoreCreateInfo.flags = 0;
+
+    VulkanDevice *vulkanDevice = &VulkanApplication::getInstance()->vulkanDevice;
+
+    vkCreateSemaphore(vulkanDevice->vkDevice, &presentCompleteSemaphoreCreateInfo, nullptr, &presentCompleteSemaphore);
+    vkCreateSemaphore(vulkanDevice->vkDevice, &drawingSemaphoreCreateInfo, nullptr, &drawingCompleteSemaphore);
 }
 
 VulkanDrawable::~VulkanDrawable()
@@ -99,6 +114,9 @@ void VulkanDrawable::prepare()
         CommandBufferMgr::allocCommandBuffer(&vulkanDevice->vkDevice, vulkanRenderer->cmdPool, &vecCmdDraw[i]);
         CommandBufferMgr::beginCommandBuffer(vecCmdDraw[i]);
 
+        // Create the render pass instance
+        recordCommandBuffer(i, &vecCmdDraw[i]);
+
         CommandBufferMgr::endCommandBuffer(vecCmdDraw[i]);
     }
 }
@@ -146,6 +164,25 @@ void VulkanDrawable::recordCommandBuffer(int currentImage, VkCommandBuffer *cmdD
     vkCmdDraw(*cmdDraw, 3, 1, 0, 0);
 
     vkCmdEndRenderPass(*cmdDraw);
+}
+
+void VulkanDrawable::render()
+{
+    VkResult ret;
+
+    VulkanDevice *vulkanDevice = vulkanRenderer->vulkanDevice;
+    VulkanSwapChain *vulkanSwapChain = vulkanRenderer->vulkanSwapChain;
+
+    uint32_t currentColorImage = vulkanSwapChain->currentColorBuffer;
+    VkSwapchainKHR &swapChain = vulkanSwapChain->swapChain;
+
+    ret = vulkanSwapChain->vkAcquireNextImageKHR(vulkanDevice->vkDevice, swapChain, UINT64_MAX,
+                                                 presentCompleteSemaphore, VK_NULL_HANDLE, &currentColorImage);
+
+    VkPipelineStageFlags submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+
+    VkSubmitInfo submitInfo = {};
+
 }
 
 #define NUMBER_OF_VIEWPORTS 1

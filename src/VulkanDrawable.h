@@ -11,13 +11,13 @@ public:
 
     void createVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride, bool useTexture);
     void prepare();
-
-    void initViewports(VkCommandBuffer *cmd);
-    void initScissors(VkCommandBuffer *cmd);
+    void render();
 
 
 private:
     void recordCommandBuffer(int currentImage, VkCommandBuffer *cmdDraw);
+    void initViewports(VkCommandBuffer *cmd);
+    void initScissors(VkCommandBuffer *cmd);
 
 public:
     struct {
@@ -31,13 +31,14 @@ public:
 
 private:
     VulkanRenderer *vulkanRenderer;
-
     std::vector<VkCommandBuffer> vecCmdDraw;
-
     VkPipeline *pipeline;
 
     VkViewport viewport;
     VkRect2D scissor;
+
+    VkSemaphore presentCompleteSemaphore;
+    VkSemaphore drawingCompleteSemaphore;
 };
 
 #endif // VULKANDRAWABLE_H

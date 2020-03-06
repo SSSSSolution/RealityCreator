@@ -53,6 +53,7 @@ public:
     std::vector<SwapChainBuffer> colorBufferList;
     uint32_t currentColorBuffer;
     uint32_t swapChainImagesCount;
+    VkSemaphore presentCompleteSemaphore;
 
 private:
     VkSurfaceKHR surface;

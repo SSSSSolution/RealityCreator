@@ -16,8 +16,8 @@ public:
 
 public:
     void initialize();
-//    bool prepare();
-//    bool render();
+    void prepare();
+    void render();
 
 
     void createCommandPool();
@@ -37,6 +37,11 @@ private:
     void createVertexBuffer();
     void createRenderPass(bool includeDepth, bool clear = true);
     void createFrameBuffer(bool includeDepth);
+
+#ifdef __linux__
+    void acquireBackBuffer();
+    void presentBackBuffer();
+#endif
 
 public:
 #ifdef _WIN32

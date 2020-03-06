@@ -35,6 +35,15 @@ void VulkanRenderer::initialize()
     createFrameBuffer(includeDepth);
 }
 
+void VulkanRenderer::prepare()
+{
+    for (auto drawableObj : drawableList)
+    {
+        drawableObj->prepare();
+    }
+}
+
+
 #ifdef _WIN32
 // MS-Windows event handling function:
 LRESULT CALLBACK VulkanRenderer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -118,6 +127,9 @@ void VulkanRenderer::createPresentationWindow(const int& windowWidth, const int&
 }
 #elif __linux__
 /* Magic code to me until now. */
+
+xcb_atom_t wmDeleteWin;
+xcb_atom_t wmProtocols;
 void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int &windowHeight)
 {
     qDebug() << __func__;
@@ -156,15 +168,25 @@ void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int 
     xcb_create_window(connection, XCB_COPY_FROM_PARENT, window, screen->root, 0, 0, width, height, 0,
                       XCB_WINDOW_CLASS_INPUT_OUTPUT, screen->root_visual, value_mask, value_list);
 
-    xcb_intern_atom_cookie_t cookie = xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS");
-    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(connection, cookie, 0);
+//    xcb_intern_atom_cookie_t cookie = xcb_intern_atom(connection, 1, 12, "WM_PROTOCOLS");
+//    xcb_intern_atom_reply_t *reply = xcb_intern_atom_reply(connection, cookie, 0);
 
-    xcb_intern_atom_cookie_t cookie2 = xcb_intern_atom(connection, 0, 16, "WM_DELETE_WINDOW");
-    reply = xcb_intern_atom_reply(connection, cookie2, 0);
+//    xcb_intern_atom_cookie_t cookie2 = xcb_intern_atom(connection, 0, 16, "WM_DELETE_WINDOW");
+//    reply = xcb_intern_atom_reply(connection, cookie2, 0);
 
-    xcb_change_property(connection, XCB_PROP_MODE_REPLACE, window, (*reply).atom, 4, 32, 1, &(*reply).atom);
-    qDebug() << "---------";
-    free(reply);
+//    xcb_change_property(connection, XCB_PROP_MODE_REPLACE, window, (*reply).atom, 4, 32, 1, &(*reply).atom);
+//    qDebug() << "---------";
+//    free(reply);
+
+    // try wmDelete
+    xcb_intern_atom_cookie_t wmDeleteCookie = xcb_intern_atom(connection, 0, strlen("WM_DELETE_WINDOW"), "WM_DELETE_WINDOW");
+    xcb_intern_atom_cookie_t wmProtocolsCookie = xcb_intern_atom(connection, 0, strlen("WM_PROTOCOLS"), "WM_PROTOCOLS");
+    xcb_intern_atom_reply_t *wmDeleteReply = xcb_intern_atom_reply(connection, wmDeleteCookie, nullptr);
+    xcb_intern_atom_reply_t *wmProtocolsReply = xcb_intern_atom_reply(connection, wmProtocolsCookie, nullptr);
+    wmDeleteWin = wmDeleteReply->atom;
+    wmProtocols = wmProtocolsReply->atom;
+
+    xcb_change_property(connection, XCB_PROP_MODE_REPLACE, window, wmProtocolsReply->atom, 4, 32, 1, &wmDeleteReply->atom);
 
 
     xcb_map_window(connection, window);
@@ -174,12 +196,50 @@ void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int 
     xcb_flush(connection);
 
     qDebug() << "---------";
-    xcb_generic_event_t *e;
-    while((e = xcb_wait_for_event(connection))) {
-        if ((e->response_type & ~0x80) == XCB_EXPOSE)
-            break;
-    }
+//    xcb_generic_event_t *e;
+//    while((e = xcb_wait_for_event(connection))) {
+//        if ((e->response_type & ~0x80) == XCB_EXPOSE)
+//            break;
+//    }
 }
+
+void VulkanRenderer::render()
+{
+    bool running = true;
+    xcb_generic_event_t *event;
+    xcb_client_message_event_t *cm;
+
+    while (running)
+    {
+        event = xcb_wait_for_event(connection);
+
+        qDebug() << event->response_type;
+        switch (event->response_type & ~0x80) {
+            case XCB_CLIENT_MESSAGE: {
+                cm = (xcb_client_message_event_t *)event;
+                if (cm->data.data32[0] == wmDeleteWin)
+                    running = false;
+                break;
+            }
+        }
+        free(event);
+        acquireBackBuffer();
+        presentBackBuffer();
+    }
+
+    xcb_destroy_window(connection, window);
+}
+
+void VulkanRenderer::acquireBackBuffer()
+{
+    qDebug() << __func__;
+}
+
+void VulkanRenderer::presentBackBuffer()
+{
+    qDebug() << __func__;
+}
+
 #endif // _WIN32
 
 void VulkanRenderer::createCommandPool()
