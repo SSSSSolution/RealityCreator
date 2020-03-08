@@ -13,6 +13,9 @@ VulkanRenderer::VulkanRenderer()
     vulkanDevice = &vulkanApplication->vulkanDevice;
 
     memset(&Depth, 0, sizeof(Depth));
+
+    VulkanDrawable *drawableObj = new VulkanDrawable(this);
+    drawableList.push_back(drawableObj);
 }
 
 void VulkanRenderer::initialize()
@@ -49,21 +52,21 @@ void VulkanRenderer::prepare()
 LRESULT CALLBACK VulkanRenderer::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
     qDebug() << __func__;
-//    switch (uMsg)
-//    {
-//    case WM_CLOSE:
-//        PostQuitMessage(0);
-//        break;
-//    case WM_PAINT:
-//        for each (VulkanDrawable* drawableObj in appObj->rendererObj->drawableList)
-//        {
-//            drawableObj->render();
-//        }
+    switch (uMsg)
+    {
+    case WM_CLOSE:
+        PostQuitMessage(0);
+        break;
+    case WM_PAINT:
+        for (auto drawableObj : VulkanApplication::getInstance()->vulkanRenderer->drawableList)
+        {
+            drawableObj->render();
+        }
 
-//        return 0;
-//    default:
-//        break;
-//    }
+        return 0;
+    default:
+        break;
+    }
     return (DefWindowProc(hWnd, uMsg, wParam, lParam));
 }
 
@@ -125,6 +128,23 @@ void VulkanRenderer::createPresentationWindow(const int& windowWidth, const int&
 
     SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR)(VulkanApplication::getInstance()));
 }
+
+void VulkanRenderer::render()
+{
+    MSG msg;
+    bool isRunning = true;
+    while (isRunning)
+    {
+        PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE);
+        if (msg.message == WM_QUIT) {
+            isRunning = false;
+        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+        RedrawWindow(window, nullptr, nullptr, RDW_INTERNALPAINT);
+    }
+}
+
 #elif __linux__
 /* Magic code to me until now. */
 

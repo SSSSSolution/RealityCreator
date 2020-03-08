@@ -110,7 +110,7 @@ void VulkanDrawable::prepare()
     VulkanDevice *vulkanDevice = vulkanRenderer->vulkanDevice;
     vecCmdDraw.resize(vulkanRenderer->vulkanSwapChain->colorBufferList.size());
 
-    for (int i = 0; i < vulkanRenderer->vulkanSwapChain->colorBufferList.size(); i++) {
+    for (uint32_t i = 0; i < vulkanRenderer->vulkanSwapChain->colorBufferList.size(); i++) {
         CommandBufferMgr::allocCommandBuffer(&vulkanDevice->vkDevice, vulkanRenderer->cmdPool, &vecCmdDraw[i]);
         CommandBufferMgr::beginCommandBuffer(vecCmdDraw[i]);
 
@@ -173,15 +173,45 @@ void VulkanDrawable::render()
     VulkanDevice *vulkanDevice = vulkanRenderer->vulkanDevice;
     VulkanSwapChain *vulkanSwapChain = vulkanRenderer->vulkanSwapChain;
 
-    uint32_t currentColorImage = vulkanSwapChain->currentColorBuffer;
+    uint32_t &currentColorImage = vulkanSwapChain->currentColorBuffer;
+    qDebug() << currentColorImage;
     VkSwapchainKHR &swapChain = vulkanSwapChain->swapChain;
+
+    VkFence nullFence = VK_NULL_HANDLE;
 
     ret = vulkanSwapChain->vkAcquireNextImageKHR(vulkanDevice->vkDevice, swapChain, UINT64_MAX,
                                                  presentCompleteSemaphore, VK_NULL_HANDLE, &currentColorImage);
-
+    qDebug() << ret;
     VkPipelineStageFlags submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submitInfo = {};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.pNext = nullptr;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores = &presentCompleteSemaphore;
+    submitInfo.pWaitDstStageMask = &submitPipelineStages;
+    submitInfo.commandBufferCount = (uint32_t)sizeof(&vecCmdDraw[currentColorImage])/sizeof(VkCommandBuffer);
+    submitInfo.pCommandBuffers = &vecCmdDraw[currentColorImage];
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &drawingCompleteSemaphore;
+
+    // Queue the command buffer for execution
+    CommandBufferMgr::submitCommandBuffer(vulkanDevice->queue, &vecCmdDraw[currentColorImage], &submitInfo);
+
+    //present the image in the window
+    VkPresentInfoKHR present = {};
+    present.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    present.pNext = nullptr;
+    present.swapchainCount = 1;
+    present.pSwapchains = &swapChain;
+    present.pImageIndices = &currentColorImage;
+    present.pWaitSemaphores                                                                                                                                                    = &drawingCompleteSemaphore;
+    present.waitSemaphoreCount = 1;
+    present.pResults = nullptr;
+
+    // Queue the image for presentation
+    ret = vulkanSwapChain->vkQueuePresentKHR(vulkanDevice->queue, &present);
+    assert(ret == VK_SUCCESS);
 
 }
 
