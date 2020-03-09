@@ -36,6 +36,13 @@ void VulkanRenderer::initialize()
     createRenderPass(includeDepth);
 
     createFrameBuffer(includeDepth);
+
+    createShaders();
+
+    createPipelineStateManagement();
+
+    qDebug() << "done";
+
 }
 
 void VulkanRenderer::prepare()
@@ -468,6 +475,7 @@ void VulkanRenderer::createVertexBuffer()
 
 void VulkanRenderer::createRenderPass(bool includeDepth, bool clear)
 {
+    qDebug() << __func__;
     VkResult ret;
 
     VkAttachmentDescription attachments[2];
@@ -535,6 +543,7 @@ void VulkanRenderer::createRenderPass(bool includeDepth, bool clear)
 
 void VulkanRenderer::createFrameBuffer(bool includeDepth)
 {
+    qDebug() << __func__;
     VkResult ret;
     VkImageView attachments[2];
     attachments[1] = Depth.view;
@@ -559,8 +568,48 @@ void VulkanRenderer::createFrameBuffer(bool includeDepth)
     }
 }
 
+void *readFile(const char *spvFileName, size_t *fileSize)
+{
+    FILE *fp = fopen(spvFileName, "rb");
+    assert(fp != nullptr);
 
+    size_t retval;
+    long int size;
 
+    fseek(fp, 0L, SEEK_END);
+    size = ftell(fp);
+
+    fseek(fp, 0L, SEEK_SET);
+
+    void *spvShader = malloc(size+1);
+
+    retval = fread(spvShader, size, 1, fp);
+    assert(retval == 1);
+
+    *fileSize = size;
+    fclose(fp);
+
+    return spvShader;
+
+}
+
+#define SHADER_DIR(shaderName) "/home/huangwei/RealityCreator/src/shader"#shaderName
+void VulkanRenderer::createShaders()
+{
+    qDebug() << __func__;
+    void *vertShaderCode, *fragShaderCode;
+    size_t sizeVert, sizeFrag;
+
+    vertShaderCode = readFile(SHADER_DIR(/vert.spv), &sizeVert);
+    fragShaderCode = readFile(SHADER_DIR(/frag.spv), &sizeFrag);
+
+    vulkanShader.buildShaderModuleWithSPV((uint32_t*)vertShaderCode, sizeVert, (uint32_t *)fragShaderCode, sizeFrag);
+}
+
+void VulkanRenderer::createPipelineStateManagement()
+{
+    vulkanPi
+}
 
 
 

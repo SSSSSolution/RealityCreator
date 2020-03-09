@@ -38,6 +38,7 @@ VkResult VulkanDevice::createDevice(std::vector<const char *> layers, std::vecto
     assert(ret == VK_SUCCESS);
 
     vkGetDeviceQueue(vkDevice, graphicsQueueIndex, 0, &deviceQueue);
+    getPhysicalDeviceProperties(&vkPhysicalDevice);
     return ret;
 }
 
@@ -88,8 +89,8 @@ void VulkanDevice::setVkPhysicalDevice(VkPhysicalDevice &gpu)
 
 void VulkanDevice::getPhysicalDeviceProperties(VkPhysicalDevice *gpu)
 {
-    vkGetPhysicalDeviceProperties(*gpu, &physicalDeviceProperties.properties);
-    vkGetPhysicalDeviceMemoryProperties(*gpu, &physicalDeviceProperties.memoryProperties);
+    vkGetPhysicalDeviceProperties(*gpu, &physicalDeviceProperties);
+    vkGetPhysicalDeviceMemoryProperties(*gpu, &memoryProperties);
 }
 
 void VulkanDevice::getDeviceQueue()

@@ -63,7 +63,7 @@ void VulkanDrawable::createVertexBuffer(const void *vertexData, uint32_t dataSiz
     allocInfo.pNext = nullptr;
     allocInfo.memoryTypeIndex = 0;
     allocInfo.allocationSize = memRqrmnt.size;
-
+    qDebug() << "allocate size:" << memRqrmnt.size;
     // Get the compatible type of memory
     pass = vulkanDevice->memoryTypeFromProperties(memRqrmnt.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
                                                   VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, &allocInfo.memoryTypeIndex);

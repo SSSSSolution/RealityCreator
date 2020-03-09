@@ -33,7 +33,9 @@ SOURCES += \
     VulkanDrawable.cpp \
     VulkanInstance.cpp \
     VulkanLayersAndExtensions.cpp \
+    VulkanPipeline.cpp \
     VulkanRenderer.cpp \
+    VulkanShader.cpp \
     VulkanSwapChain.cpp \
     main.cpp
 
@@ -44,7 +46,9 @@ HEADERS += \
     VulkanDrawable.h \
     VulkanInstance.h \
     VulkanLayersAndExtensions.h \
+    VulkanPipeline.h \
     VulkanRenderer.h \
+    VulkanShader.h \
     VulkanSwapChain.h \
     headers.h \
     meshdata.h

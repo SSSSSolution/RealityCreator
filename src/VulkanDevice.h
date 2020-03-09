@@ -29,7 +29,7 @@ public:
     VkPhysicalDevice vkPhysicalDevice;
     VkDevice vkDevice;
 
-    PhysicalDeviceProperties physicalDeviceProperties;
+    VkPhysicalDeviceProperties physicalDeviceProperties;
     VkPhysicalDeviceMemoryProperties memoryProperties;
 
     // Queue

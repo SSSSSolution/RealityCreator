@@ -2,13 +2,18 @@
 #define VULKANRENDERER_H
 
 #include "headers.h"
+#include "VulkanShader.h"
+#include "VulkanPipeline.h"
 
 class VulkanSwapChain;
 class VulkanApplication;
 class VulkanDevice;
 class VulkanDrawable;
 
-#define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
+//#define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
+
+void *readFile(const char *spvFileName, size_t *fileSize);
+
 class VulkanRenderer
 {
 public:
@@ -37,6 +42,8 @@ private:
     void createVertexBuffer();
     void createRenderPass(bool includeDepth, bool clear = true);
     void createFrameBuffer(bool includeDepth);
+    void createShaders();
+    void createPipelineStateManagement();
 
 #ifdef __linux__
     void acquireBackBuffer();
@@ -79,6 +86,8 @@ private:
     VkCommandBuffer cmdDepthImage;
 
     std::vector<VulkanDrawable*> drawableList;
+
+    VulkanShader vulkanShader;
 };
 
 #endif // VULKANRENDERER_H
