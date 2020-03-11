@@ -19,6 +19,7 @@ static std::vector<const char *> extensions = {
 };
 
 static std::vector<const char *> deviceLayers = {
+    "VK_LAYER_LUNARG_standard_validation"
 };
 
 static std::vector<const char *> deviceExtensions = {

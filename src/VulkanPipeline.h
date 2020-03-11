@@ -17,8 +17,8 @@ public:
     ~VulkanPipeline();
 
     void createPipelineCache();
-    void createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *pipeline, VulkanShader *vulkanShader,
-                        VkBool32 includeDepth, VkBool32 includeVi = true);
+    bool createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *pipeline, VulkanShader *vulkanShader,
+                        VkBool32 includeDepth, VkBool32 includeVi = VK_TRUE);
 
 private:
     VulkanApplication *vulkanApplication;

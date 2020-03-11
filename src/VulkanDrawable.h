@@ -13,6 +13,8 @@ public:
     void prepare();
     void render();
 
+    void setPipeline(VkPipeline *vkPipeline) { pipeline = vkPipeline; }
+
 
 private:
     void recordCommandBuffer(int currentImage, VkCommandBuffer *cmdDraw);
@@ -37,6 +39,7 @@ private:
     VkViewport viewport;
     VkRect2D scissor;
 
+    VkFence vkFence;
     VkSemaphore presentCompleteSemaphore;
     VkSemaphore drawingCompleteSemaphore;
 };

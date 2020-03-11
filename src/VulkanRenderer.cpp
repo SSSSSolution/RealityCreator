@@ -232,6 +232,7 @@ void VulkanRenderer::createPresentationWindow(const int &windowWidth, const int 
 
 void VulkanRenderer::render()
 {
+    qDebug() << __func__;
     bool running = true;
     xcb_generic_event_t *event;
     xcb_client_message_event_t *cm;
@@ -260,6 +261,9 @@ void VulkanRenderer::render()
 void VulkanRenderer::acquireBackBuffer()
 {
     qDebug() << __func__;
+    for (auto drawable : drawableList) {
+        drawable->render();
+    }
 }
 
 void VulkanRenderer::presentBackBuffer()
@@ -603,12 +607,27 @@ void VulkanRenderer::createShaders()
     vertShaderCode = readFile(SHADER_DIR(/vert.spv), &sizeVert);
     fragShaderCode = readFile(SHADER_DIR(/frag.spv), &sizeFrag);
 
+    qDebug() << "sizeVert: " << sizeVert <<" , sizeFrag: " << sizeFrag;
     vulkanShader.buildShaderModuleWithSPV((uint32_t*)vertShaderCode, sizeVert, (uint32_t *)fragShaderCode, sizeFrag);
 }
 
 void VulkanRenderer::createPipelineStateManagement()
 {
-    vulkanPi
+    qDebug() << __func__;
+    vulkanPipeline.createPipelineCache();
+
+    qDebug() <<"---";
+    const VkBool32 depthPresent = VK_TRUE;
+    for (auto vulkanDrawable : drawableList)
+    {
+       VkPipeline *pipeline = (VkPipeline*)malloc(sizeof(VkPipeline));
+       if (vulkanPipeline.createPipeline(vulkanDrawable, pipeline, &vulkanShader, depthPresent)) {
+           pipelineList.push_back(pipeline);
+           vulkanDrawable->setPipeline(pipeline);
+       } else {
+        free(pipeline);
+        }
+    }
 }
 
 

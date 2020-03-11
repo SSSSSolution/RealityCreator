@@ -32,7 +32,9 @@ VkResult VulkanDevice::createDevice(std::vector<const char *> layers, std::vecto
     deviceInfo.ppEnabledLayerNames = layers.data();
     deviceInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
     deviceInfo.ppEnabledExtensionNames = extensions.data();
-    deviceInfo.pEnabledFeatures = nullptr;
+    VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceFeatures.depthClamp = VK_TRUE;
+    deviceInfo.pEnabledFeatures = &deviceFeatures;
 
     ret = vkCreateDevice(vkPhysicalDevice, &deviceInfo, nullptr, &vkDevice);
     assert(ret == VK_SUCCESS);

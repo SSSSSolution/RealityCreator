@@ -23,6 +23,14 @@ VulkanDrawable::VulkanDrawable(VulkanRenderer *parent)
 
     vkCreateSemaphore(vulkanDevice->vkDevice, &presentCompleteSemaphoreCreateInfo, nullptr, &presentCompleteSemaphore);
     vkCreateSemaphore(vulkanDevice->vkDevice, &drawingSemaphoreCreateInfo, nullptr, &drawingCompleteSemaphore);
+
+    VkFenceCreateInfo fenceInfo = {};
+    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fenceInfo.pNext = nullptr;
+    fenceInfo.flags = 0;
+
+    VkResult ret = vkCreateFence(VulkanApplication::getInstance()->vulkanDevice.vkDevice, &fenceInfo, nullptr, &vkFence);
+    assert(ret == VK_SUCCESS);
 }
 
 VulkanDrawable::~VulkanDrawable()
@@ -107,6 +115,7 @@ void VulkanDrawable::createVertexBuffer(const void *vertexData, uint32_t dataSiz
 
 void VulkanDrawable::prepare()
 {
+    qDebug()<< __func__ << vulkanRenderer->vulkanSwapChain->colorBufferList.size();
     VulkanDevice *vulkanDevice = vulkanRenderer->vulkanDevice;
     vecCmdDraw.resize(vulkanRenderer->vulkanSwapChain->colorBufferList.size());
 
@@ -123,6 +132,7 @@ void VulkanDrawable::prepare()
 
 void VulkanDrawable::recordCommandBuffer(int currentImage, VkCommandBuffer *cmdDraw)
 {
+    qDebug() << __func__ << currentImage;
     VulkanDevice *vulkanDevice = vulkanRenderer->vulkanDevice;
 
     VkClearValue clearValues[2];
@@ -177,11 +187,12 @@ void VulkanDrawable::render()
     qDebug() << currentColorImage;
     VkSwapchainKHR &swapChain = vulkanSwapChain->swapChain;
 
-    VkFence nullFence = VK_NULL_HANDLE;
-
+//    VkFence nullFence = VK_NULL_HANDLE;
+    vkResetFences(VulkanApplication::getInstance()->vulkanDevice.vkDevice, 1, &vkFence);
     ret = vulkanSwapChain->vkAcquireNextImageKHR(vulkanDevice->vkDevice, swapChain, UINT64_MAX,
-                                                 presentCompleteSemaphore, VK_NULL_HANDLE, &currentColorImage);
-    qDebug() << ret;
+                                                 presentCompleteSemaphore, vkFence, &currentColorImage);
+    vkWaitForFences(VulkanApplication::getInstance()->vulkanDevice.vkDevice, 1, &vkFence, VK_TRUE, UINT_MAX);
+    qDebug() << "next image index: " << currentColorImage;
     VkPipelineStageFlags submitPipelineStages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
     VkSubmitInfo submitInfo = {};

@@ -1,9 +1,11 @@
 #include "VulkanPipeline.h"
 #include "VulkanDrawable.h"
+#include "VulkanRenderer.h"
 
 VulkanPipeline::VulkanPipeline()
 {
-
+    vulkanApplication = VulkanApplication::getInstance();
+    vulkanDevice = &vulkanApplication->vulkanDevice;
 }
 
 VulkanPipeline::~VulkanPipeline()
@@ -13,6 +15,7 @@ VulkanPipeline::~VulkanPipeline()
 
 void VulkanPipeline::createPipelineCache()
 {
+    qDebug() << __func__;
     VkResult ret;
 
     VkPipelineCacheCreateInfo pipelineCacheInfo;
@@ -23,11 +26,13 @@ void VulkanPipeline::createPipelineCache()
     pipelineCacheInfo.flags = 0;
 
     ret = vkCreatePipelineCache(vulkanDevice->vkDevice, &pipelineCacheInfo, nullptr, &pipelineCache);
+    qDebug() << "ret: " << ret;
     assert(ret == VK_SUCCESS);
 }
 
-void VulkanPipeline::createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *pipeline, VulkanShader *vulkanShader, VkBool32 includeDepth, VkBool32 includeVi)
+bool VulkanPipeline::createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *pipeline, VulkanShader *vulkanShader, VkBool32 includeDepth, VkBool32 includeVi)
 {
+    qDebug() << __func__;
     VkDynamicState dynamicStateEnables[VK_DYNAMIC_STATE_RANGE_SIZE];
     memset(dynamicStateEnables, 0, sizeof(dynamicStateEnables));
 
@@ -44,12 +49,13 @@ void VulkanPipeline::createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *
     vertexInputStateInfo.pNext = nullptr;
     vertexInputStateInfo.flags = 0;
 
-    if (includeVi)
+    if (includeVi == VK_TRUE)
     {
         vertexInputStateInfo.vertexBindingDescriptionCount = sizeof(vulkanDrawable->viIpBind)/ sizeof(VkVertexInputBindingDescription);
         vertexInputStateInfo.pVertexBindingDescriptions = &vulkanDrawable->viIpBind;
         vertexInputStateInfo.vertexAttributeDescriptionCount = sizeof(vulkanDrawable->viIpAttrb) / sizeof(VkVertexInputAttributeDescription);
         vertexInputStateInfo.pVertexAttributeDescriptions = vulkanDrawable->viIpAttrb;
+        qDebug() << "attrb sizse:" << sizeof(vulkanDrawable->viIpAttrb) / sizeof(VkVertexInputAttributeDescription);
     }
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo = {};
@@ -137,12 +143,14 @@ void VulkanPipeline::createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *
     multiSampleStateInfo.rasterizationSamples = NUM_SAMPLES;
     multiSampleStateInfo.sampleShadingEnable = VK_FALSE;
     multiSampleStateInfo.alphaToCoverageEnable = VK_FALSE;
+    multiSampleStateInfo.alphaToCoverageEnable = VK_FALSE;
     multiSampleStateInfo.minSampleShading = 0.0;
 
     VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = {};
     pPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     VkResult ret;
     ret = vkCreatePipelineLayout(vulkanDevice->vkDevice, &pPipelineLayoutCreateInfo, nullptr, &pipelineLayout);
+    assert(ret == VK_SUCCESS);
 
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -166,7 +174,11 @@ void VulkanPipeline::createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *
     pipelineInfo.subpass = 0;
 
     ret = vkCreateGraphicsPipelines(vulkanDevice->vkDevice, pipelineCache, 1, &pipelineInfo, nullptr, pipeline);
-    assert(ret == VK_SUCCESS);
+    if (ret == VK_SUCCESS) {
+        return true;
+    } else {
+        return false;
+    }
 }
 
 

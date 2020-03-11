@@ -10,7 +10,7 @@ class VulkanApplication;
 class VulkanDevice;
 class VulkanDrawable;
 
-//#define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
+#define NUM_SAMPLES VK_SAMPLE_COUNT_1_BIT
 
 void *readFile(const char *spvFileName, size_t *fileSize);
 
@@ -88,6 +88,9 @@ private:
     std::vector<VulkanDrawable*> drawableList;
 
     VulkanShader vulkanShader;
+
+    VulkanPipeline vulkanPipeline;
+    std::vector<VkPipeline *> pipelineList;
 };
 
 #endif // VULKANRENDERER_H
