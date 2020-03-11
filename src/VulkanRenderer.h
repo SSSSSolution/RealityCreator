@@ -55,7 +55,7 @@ public:
 #define APP_NAME_STR_LEN 80
     HINSTANCE connection;
 //    wchar_t name[APP_NAME_STR_LEN];
-    LPCWSTR name;
+    LPCWSTR name = L"Drawing Hello World";
     HWND window;
 #elif __linux__
     xcb_connection_t *connection;

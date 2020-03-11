@@ -85,7 +85,6 @@ void VulkanRenderer::createPresentationWindow(const int& windowWidth, const int&
 
     WNDCLASSEX  winInfo;
 
-    name = L"Drawing Hello World";
     memset(&winInfo, 0, sizeof(WNDCLASSEX));
     // Initialize the window class structure:
     winInfo.cbSize			= sizeof(WNDCLASSEX);
@@ -134,10 +133,12 @@ void VulkanRenderer::createPresentationWindow(const int& windowWidth, const int&
     }
 
     SetWindowLongPtr(window, GWLP_USERDATA, (LONG_PTR)(VulkanApplication::getInstance()));
+    qDebug() << __func__;
 }
 
 void VulkanRenderer::render()
 {
+    qDebug() << __func__;
     MSG msg;
     bool isRunning = true;
     while (isRunning)
@@ -145,10 +146,11 @@ void VulkanRenderer::render()
         PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE);
         if (msg.message == WM_QUIT) {
             isRunning = false;
+        } else {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+            RedrawWindow(window, nullptr, nullptr, RDW_INTERNALPAINT);
         }
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
-        RedrawWindow(window, nullptr, nullptr, RDW_INTERNALPAINT);
     }
 }
 
@@ -597,15 +599,20 @@ void *readFile(const char *spvFileName, size_t *fileSize)
 
 }
 
-#define SHADER_DIR(shaderName) "/home/huangwei/RealityCreator/src/shader"#shaderName
+#ifdef _WIN32
+#define SHADER_DIR(shaderName) "D:\\MyDisk\\RealityCreator\\src\\shader\\"#shaderName
+#elif
+#define SHADER_DIR(shaderName) "/home/huangwei/RealityCreator/src/shader/"#shaderName
+#endif
+
 void VulkanRenderer::createShaders()
 {
     qDebug() << __func__;
     void *vertShaderCode, *fragShaderCode;
     size_t sizeVert, sizeFrag;
 
-    vertShaderCode = readFile(SHADER_DIR(/vert.spv), &sizeVert);
-    fragShaderCode = readFile(SHADER_DIR(/frag.spv), &sizeFrag);
+    vertShaderCode = readFile(SHADER_DIR(vert.spv), &sizeVert);
+    fragShaderCode = readFile(SHADER_DIR(frag.spv), &sizeFrag);
 
     qDebug() << "sizeVert: " << sizeVert <<" , sizeFrag: " << sizeFrag;
     vulkanShader.buildShaderModuleWithSPV((uint32_t*)vertShaderCode, sizeVert, (uint32_t *)fragShaderCode, sizeFrag);

@@ -31,6 +31,8 @@ VulkanDrawable::VulkanDrawable(VulkanRenderer *parent)
 
     VkResult ret = vkCreateFence(VulkanApplication::getInstance()->vulkanDevice.vkDevice, &fenceInfo, nullptr, &vkFence);
     assert(ret == VK_SUCCESS);
+
+    prepared = false;
 }
 
 VulkanDrawable::~VulkanDrawable()
@@ -128,6 +130,7 @@ void VulkanDrawable::prepare()
 
         CommandBufferMgr::endCommandBuffer(vecCmdDraw[i]);
     }
+    prepared = true;
 }
 
 void VulkanDrawable::recordCommandBuffer(int currentImage, VkCommandBuffer *cmdDraw)
@@ -178,6 +181,9 @@ void VulkanDrawable::recordCommandBuffer(int currentImage, VkCommandBuffer *cmdD
 
 void VulkanDrawable::render()
 {
+    qDebug() << __func__;
+    if (!prepared)
+        return;
     VkResult ret;
 
     VulkanDevice *vulkanDevice = vulkanRenderer->vulkanDevice;

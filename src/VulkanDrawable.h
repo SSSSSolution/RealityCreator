@@ -42,6 +42,8 @@ private:
     VkFence vkFence;
     VkSemaphore presentCompleteSemaphore;
     VkSemaphore drawingCompleteSemaphore;
+
+    bool prepared;
 };
 
 #endif // VULKANDRAWABLE_H
