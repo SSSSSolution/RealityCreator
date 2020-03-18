@@ -80,6 +80,9 @@ public:
     VkRenderPass renderPass;
     std::vector<VkFramebuffer> framebuffers;
 
+    VulkanPipeline vulkanPipeline;
+    std::vector<VkPipeline *> pipelineList;
+
 private:
     VulkanApplication *vulkanApplication;
 
@@ -89,8 +92,7 @@ private:
 
     VulkanShader vulkanShader;
 
-    VulkanPipeline vulkanPipeline;
-    std::vector<VkPipeline *> pipelineList;
+
 };
 
 #endif // VULKANRENDERER_H

@@ -601,7 +601,7 @@ void *readFile(const char *spvFileName, size_t *fileSize)
 
 #ifdef _WIN32
 #define SHADER_DIR(shaderName) "D:\\MyDisk\\RealityCreator\\src\\shader\\"#shaderName
-#elif
+#elif __linux__
 #define SHADER_DIR(shaderName) "/home/huangwei/RealityCreator/src/shader/"#shaderName
 #endif
 
@@ -632,7 +632,7 @@ void VulkanRenderer::createPipelineStateManagement()
            pipelineList.push_back(pipeline);
            vulkanDrawable->setPipeline(pipeline);
        } else {
-        free(pipeline);
+            free(pipeline);
         }
     }
 }

@@ -8,6 +8,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # 支持c++11标准
 CONFIG += c++11 exceptions
 
+
+INCLUDEPATH += ../3thparty/include
 # linux 环境:`
 unix {
 #如何配置安装vulkan请参 https://vulkan.lunarg.com/doc/sdk/1.1.121.1/linux/getting_started.html，
@@ -29,6 +31,7 @@ LIBS += -lgdi32 -lkernel32 -luser32
 SOURCES += \
     CommandBufferMgr.cpp \
     VulkanApplication.cpp \
+    VulkanDescriptor.cpp \
     VulkanDevice.cpp \
     VulkanDrawable.cpp \
     VulkanInstance.cpp \
@@ -42,6 +45,7 @@ SOURCES += \
 HEADERS += \
     CommandBufferMgr.h \
     VulkanApplication.h \
+    VulkanDescriptor.h \
     VulkanDevice.h \
     VulkanDrawable.h \
     VulkanInstance.h \
