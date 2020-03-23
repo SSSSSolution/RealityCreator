@@ -43,7 +43,9 @@ private:
     void createRenderPass(bool includeDepth, bool clear = true);
     void createFrameBuffer(bool includeDepth);
     void createShaders();
+    void createDescriptors();
     void createPipelineStateManagement();
+    void createPushConstants();
 
 #ifdef __linux__
     void acquireBackBuffer();
@@ -77,6 +79,7 @@ public:
     VkCommandPool cmdPool;
 
     VkCommandBuffer cmdVertexBuffer;
+    VkCommandBuffer cmdPushConstant;
     VkRenderPass renderPass;
     std::vector<VkFramebuffer> framebuffers;
 

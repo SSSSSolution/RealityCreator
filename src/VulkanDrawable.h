@@ -5,7 +5,7 @@
 
 class VulkanRenderer;
 
-class VulkanDrawable : VulkanDescriptor
+class VulkanDrawable : public VulkanDescriptor
 {
 public:
     VulkanDrawable(VulkanRenderer *parent);
@@ -14,6 +14,7 @@ public:
     void createVertexBuffer(const void *vertexData, uint32_t dataSize, uint32_t dataStride, bool useTexture);
     void prepare();
     void render();
+    void update();
 
     void setPipeline(VkPipeline *vkPipeline) { pipeline = vkPipeline; }
 

@@ -146,16 +146,10 @@ bool VulkanPipeline::createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *
     multiSampleStateInfo.alphaToCoverageEnable = VK_FALSE;
     multiSampleStateInfo.minSampleShading = 0.0;
 
-    VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo = {};
-    pPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    VkResult ret;
-    ret = vkCreatePipelineLayout(vulkanDevice->vkDevice, &pPipelineLayoutCreateInfo, nullptr, &pipelineLayout);
-    assert(ret == VK_SUCCESS);
-
     VkGraphicsPipelineCreateInfo pipelineInfo = {};
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.pNext = nullptr;
-    pipelineInfo.layout = pipelineLayout;
+    pipelineInfo.layout = vulkanDrawable->pipelineLayout;
     pipelineInfo.basePipelineHandle = 0;
     pipelineInfo.basePipelineIndex = 0;
     pipelineInfo.flags = 0;
@@ -173,7 +167,7 @@ bool VulkanPipeline::createPipeline(VulkanDrawable *vulkanDrawable, VkPipeline *
     pipelineInfo.renderPass = vulkanApplication->vulkanRenderer->renderPass;
     pipelineInfo.subpass = 0;
 
-    ret = vkCreateGraphicsPipelines(vulkanDevice->vkDevice, pipelineCache, 1, &pipelineInfo, nullptr, pipeline);
+    VkResult ret = vkCreateGraphicsPipelines(vulkanDevice->vkDevice, pipelineCache, 1, &pipelineInfo, nullptr, pipeline);
     if (ret == VK_SUCCESS) {
         return true;
     } else {

@@ -83,6 +83,7 @@ void VulkanDrawable::createVertexBuffer(const void *vertexData, uint32_t dataSiz
     ret = vkAllocateMemory(vulkanDevice->vkDevice, &allocInfo, nullptr, &(VertexBuffer.mem));
     assert(ret == VK_SUCCESS);
     VertexBuffer.bufferInfo.range = memRqrmnt.size;
+    qDebug() << "memRqmnt: " << memRqrmnt.size;
     VertexBuffer.bufferInfo.offset = 0;
 
     // Map the physical device memory region to the host
@@ -92,6 +93,7 @@ void VulkanDrawable::createVertexBuffer(const void *vertexData, uint32_t dataSiz
 
     // Copy the data in the mapped memory
     memcpy(pData, vertexData, dataSize);
+    qDebug() << "data size: " << dataSize;
 
     // Unmap the device memory
     vkUnmapMemory(vulkanDevice->vkDevice, VertexBuffer.mem);
@@ -165,6 +167,8 @@ void VulkanDrawable::recordCommandBuffer(int currentImage, VkCommandBuffer *cmdD
     // Bound the command buffer with the graphics pipeline
     vkCmdBindPipeline(*cmdDraw, VK_PIPELINE_BIND_POINT_GRAPHICS, *pipeline);
 
+    vkCmdBindDescriptorSets(*cmdDraw, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            pipelineLayout, 0, 1, descriptorSet.data(), 0, nullptr);
     // Bound the command buffer with the graphics pipeline
     const VkDeviceSize offsets[1] = { 0 };
     vkCmdBindVertexBuffers(*cmdDraw, 0, 1, &VertexBuffer.buf, offsets);
@@ -174,7 +178,7 @@ void VulkanDrawable::recordCommandBuffer(int currentImage, VkCommandBuffer *cmdD
 
     initScissors(cmdDraw);
 
-    vkCmdDraw(*cmdDraw, 3, 1, 0, 0);
+    vkCmdDraw(*cmdDraw, 3*2*6, 1, 0, 0);
 
     vkCmdEndRenderPass(*cmdDraw);
 }
@@ -222,7 +226,7 @@ void VulkanDrawable::render()
     present.swapchainCount = 1;
     present.pSwapchains = &swapChain;
     present.pImageIndices = &currentColorImage;
-    present.pWaitSemaphores                                                                                                                                                    = &drawingCompleteSemaphore;
+    present.pWaitSemaphores = &drawingCompleteSemaphore;
     present.waitSemaphoreCount = 1;
     present.pResults = nullptr;
 
@@ -230,6 +234,34 @@ void VulkanDrawable::render()
     ret = vulkanSwapChain->vkQueuePresentKHR(vulkanDevice->queue, &present);
     assert(ret == VK_SUCCESS);
 
+}
+
+void VulkanDrawable::update()
+{
+    if (!prepared)
+        return;
+
+    VulkanDevice *vulkanDevice = vulkanRenderer->vulkanDevice;
+    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
+
+    glm::mat4 View = glm::lookAt( glm::vec3(0, 0, 5),
+                                  glm::vec3(0, 0, 0),
+                                  glm::vec3(0, 1, 0) );
+    glm::mat4 Model = glm::mat4(1.0f);
+    static float rot = 0;
+    rot += 0.0005f;
+    Model = glm::rotate(Model, rot, glm::vec3(0.0f, 1.0f, 0.0f))
+          * glm::rotate(Model, rot, glm::vec3(1.0f, 1.0f, 1.0f));
+
+    glm::mat4 MVP = Projection * View * Model;
+
+
+    VkResult ret = vkInvalidateMappedMemoryRanges(vulkanDevice->vkDevice, 1, &UniformData.mappedRange[0]);
+    assert(ret == VK_SUCCESS);
+
+    memcpy(UniformData.pData, &MVP, sizeof(MVP));
+    ret = vkFlushMappedMemoryRanges(vulkanDevice->vkDevice, 1, &UniformData.mappedRange[0]);
+    assert(ret == VK_SUCCESS);
 }
 
 #define NUMBER_OF_VIEWPORTS 1
@@ -279,17 +311,27 @@ void VulkanDrawable::createDescriptorSetLayout(bool useTexture)
     descriptorLayout.pBindings = layoutBindings;
 
     VkResult ret;
+    descLayoutList.resize(1);
     ret = vkCreateDescriptorSetLayout(vulkanDevice->vkDevice, &descriptorLayout, nullptr, descLayoutList.data());
     assert(ret == VK_SUCCESS);
 }
 
 void VulkanDrawable::createPipelineLayout()
 {
+    // Setup the push constant range
+    const unsigned pushConstantRangeCount = 1;
+    VkPushConstantRange pushConstantRanges[pushConstantRangeCount] = {};
+    pushConstantRanges[0].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+    pushConstantRanges[0].offset = 0;
+    pushConstantRanges[0].size = 8;
+
+
+
     VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo = {};
     pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutCreateInfo.pNext = nullptr;
-    pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-    pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
+    pipelineLayoutCreateInfo.pushConstantRangeCount = pushConstantRangeCount;
+    pipelineLayoutCreateInfo.pPushConstantRanges = pushConstantRanges;
     pipelineLayoutCreateInfo.setLayoutCount = (uint32_t)descLayoutList.size();
     pipelineLayoutCreateInfo.pSetLayouts = descLayoutList.data();
 
@@ -386,7 +428,9 @@ void VulkanDrawable::createUniformBuffer()
     VkBufferCreateInfo bufInfo = {};
     bufInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufInfo.pNext = nullptr;
+    bufInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
     bufInfo.flags = 0;
+    bufInfo.size = sizeof(MVP);
     bufInfo.queueFamilyIndexCount = 0;
     bufInfo.pQueueFamilyIndices = nullptr;
     bufInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;

@@ -39,7 +39,11 @@ void VulkanRenderer::initialize()
 
     createShaders();
 
+    createDescriptors();
+
     createPipelineStateManagement();
+
+    createPushConstants();
 
     qDebug() << "done";
 
@@ -143,6 +147,10 @@ void VulkanRenderer::render()
     bool isRunning = true;
     while (isRunning)
     {
+        for (auto drawableObj : VulkanApplication::getInstance()->vulkanRenderer->drawableList)
+        {
+            drawableObj->update();
+        }
         PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE);
         if (msg.message == WM_QUIT) {
             isRunning = false;
@@ -472,7 +480,8 @@ void VulkanRenderer::createVertexBuffer()
     CommandBufferMgr::beginCommandBuffer(cmdVertexBuffer);
 
     for (auto drawableObj : drawableList) {
-        drawableObj->createVertexBuffer(triangleData, sizeof(triangleData), sizeof(triangleData[0]), false);
+        qDebug() << "size of geometryData: " << sizeof(geometryData);
+        drawableObj->createVertexBuffer(geometryData, sizeof(geometryData), sizeof(geometryData[0]), false);
     }
 
     CommandBufferMgr::endCommandBuffer(cmdVertexBuffer);
@@ -618,8 +627,20 @@ void VulkanRenderer::createShaders()
     vulkanShader.buildShaderModuleWithSPV((uint32_t*)vertShaderCode, sizeVert, (uint32_t *)fragShaderCode, sizeFrag);
 }
 
+void VulkanRenderer::createDescriptors()
+{
+    for (auto drawableObj : drawableList) {
+        drawableObj->createDescriptorSetLayout(false);
+        drawableObj->createDescriptor(false);
+    }
+}
+
 void VulkanRenderer::createPipelineStateManagement()
 {
+    for (auto drawableObj : drawableList) {
+        drawableObj->createPipelineLayout();
+    }
+
     qDebug() << __func__;
     vulkanPipeline.createPipelineCache();
 
@@ -637,6 +658,39 @@ void VulkanRenderer::createPipelineStateManagement()
     }
 }
 
+void VulkanRenderer::createPushConstants()
+{
+    CommandBufferMgr::allocCommandBuffer(&vulkanDevice->vkDevice, cmdPool, &cmdPushConstant);
+    CommandBufferMgr::beginCommandBuffer(cmdPushConstant);
+
+    enum ColorFlag {
+        RED = 1,
+        GREEN = 2,
+        BLUE = 3,
+        MIXED_COLOR = 4
+    };
+
+    float mixerValue = 0.3f;
+    unsigned constColorRGBFlag = BLUE;
+
+    unsigned pushConstants[2] = {};
+    pushConstants[0] = constColorRGBFlag;
+    memcpy(&pushConstants[1], &mixerValue, sizeof(float));
+
+    // check if number of push constants does not exceed the allowed size
+    int maxPushConstantSize = vulkanDevice->physicalDeviceProperties.limits.maxPushConstantsSize;
+    if (sizeof(pushConstants) > maxPushConstantSize) {
+        assert(0);
+    }
+
+    for (auto drawableObj : drawableList) {
+        vkCmdPushConstants(cmdPushConstant, drawableObj->pipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT,
+                           0, sizeof(pushConstants), pushConstants);
+    }
+
+    CommandBufferMgr::endCommandBuffer(cmdPushConstant);
+    CommandBufferMgr::submitCommandBuffer(vulkanDevice->queue, &cmdPushConstant);
+}
 
 
 
